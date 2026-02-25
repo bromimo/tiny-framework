@@ -42,8 +42,16 @@ class UserController
             return ApiResponse::error($errors, 422);
         }
 
-        $dto  = $request->toDto();
-        $user = User::create($dto);
+        $dto = $request->toDto();
+
+        try {
+            $user = User::create($dto);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'email_taken') {
+                return ApiResponse::error(['email' => 'This email is already in use.'], 422);
+            }
+            throw $e;
+        }
 
         Logger::info("User created: {$user['id']}");
 
@@ -65,8 +73,16 @@ class UserController
             return ApiResponse::error($errors, 422);
         }
 
-        $dto     = $request->toDto();
-        $updated = User::update($user['id'], $dto);
+        $dto = $request->toDto();
+
+        try {
+            $updated = User::update($user['id'], $dto);
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() === 'email_taken') {
+                return ApiResponse::error(['email' => 'This email is already in use.'], 422);
+            }
+            throw $e;
+        }
 
         Logger::info("User updated: {$user['id']}");
 

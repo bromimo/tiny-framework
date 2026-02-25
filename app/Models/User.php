@@ -21,12 +21,19 @@ class User extends BaseModel
         $stmt = static::db()->prepare(
             'INSERT INTO users (name, surname, email, password) VALUES (?, ?, ?, ?)'
         );
-        $stmt->execute([
-            $dto->name,
-            $dto->surname,
-            $dto->email,
-            password_hash($dto->password, PASSWORD_BCRYPT),
-        ]);
+        try {
+            $stmt->execute([
+                $dto->name,
+                $dto->surname,
+                $dto->email,
+                password_hash($dto->password, PASSWORD_BCRYPT),
+            ]);
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') {
+                throw new \RuntimeException('email_taken');
+            }
+            throw $e;
+        }
 
         return static::findById((int) static::db()->lastInsertId());
     }
@@ -61,7 +68,15 @@ class User extends BaseModel
         $stmt = static::db()->prepare(
             'UPDATE users SET ' . implode(', ', $fields) . ' WHERE id = ?'
         );
-        $stmt->execute($values);
+
+        try {
+            $stmt->execute($values);
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') {
+                throw new \RuntimeException('email_taken');
+            }
+            throw $e;
+        }
 
         return static::findById($id);
     }

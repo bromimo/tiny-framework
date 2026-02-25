@@ -41,6 +41,11 @@ class AuthController
     public function logout(Request $req): Response
     {
         $token = getBearerToken();
+
+        if ($token === null) {
+            return ApiResponse::unauthorized('No token provided.');
+        }
+
         Token::deleteByToken($token);
 
         return ApiResponse::ok(['message' => 'Logged out successfully.']);

@@ -22,7 +22,7 @@ class AuthMiddleware implements MiddlewareInterface
         $record = Token::findValid($token);
 
         if ($record === null) {
-            Logger::info("Invalid or expired token attempt: {$token}");
+            Logger::info('Invalid or expired token attempt: ' . substr($token, 0, 8) . '...');
             return ApiResponse::unauthorized('Invalid or expired token.');
         }
 
