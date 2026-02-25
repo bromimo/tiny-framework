@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3111a662a756253aee5dac58c7744aba",
+    "content-hash": "bcc431170627599c1c05935fb673df29",
     "packages": [
         {
             "name": "bromimo/tiny-router",

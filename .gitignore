@@ -1,3 +1,9 @@
 /vendor/
 /.env
 /storage/logs/*.log
+!/storage/logs/.gitkeep
+
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

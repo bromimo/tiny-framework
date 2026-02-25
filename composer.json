@@ -4,7 +4,7 @@
     "type": "project",
     "require": {
         "php": "^8.2",
-        "bromimo/tiny-router": "*",
+        "bromimo/tiny-router": "^1.0",
         "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {
