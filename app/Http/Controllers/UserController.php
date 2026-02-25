@@ -75,6 +75,10 @@ class UserController
 
         $dto = $request->toDto();
 
+        if ($dto->name === '' && $dto->surname === '' && $dto->email === '' && $dto->password === null) {
+            return ApiResponse::error('No fields provided for update.', 422);
+        }
+
         try {
             $updated = User::update($user['id'], $dto);
         } catch (\RuntimeException $e) {
