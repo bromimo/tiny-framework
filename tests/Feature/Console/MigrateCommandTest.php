@@ -100,6 +100,19 @@ class MigrateCommandTest extends TestCase
         $this->makeCommand()->handle([]);
     }
 
+    public function test_error_on_failed_migration_throws(): void
+    {
+        $content = "<?php\nreturn new class {\n"
+            . "    public function up(): void { throw new \RuntimeException('up failed'); }\n"
+            . "    public function down(): void {}\n"
+            . "};\n";
+        file_put_contents($this->tmpMigrations . '/2026_01_01_000001_bad_migration.php', $content);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/Error migrating.*bad_migration/');
+        $this->makeCommand()->handle([]);
+    }
+
     private function expectOutputContains(string $expected): void
     {
         $this->expectOutputRegex('/' . preg_quote($expected, '/') . '/');

@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Migrate;
 
 use Throwable;
+use RuntimeException;
 
 /** Применяет все непримененные миграции из database/migrations/.
  * Создаёт таблицу migrations при первом запуске.
@@ -46,8 +47,7 @@ class MigrateCommand
                 qi('INSERT INTO migrations (migration, batch) VALUES (?, ?)', [$name, $batch]);
                 echo "Migrated: {$name}" . PHP_EOL;
             } catch (Throwable $e) {
-                echo "Error migrating {$name}: " . $e->getMessage() . PHP_EOL;
-                exit(1);
+                throw new RuntimeException("Error migrating {$name}: " . $e->getMessage());
             }
         }
     }

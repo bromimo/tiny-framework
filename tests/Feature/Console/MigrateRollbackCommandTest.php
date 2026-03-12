@@ -117,4 +117,21 @@ class MigrateRollbackCommandTest extends TestCase
         $this->assertNotNull($batch1);
         $this->assertNull($batch2);
     }
+
+    public function test_throws_when_migration_file_missing_during_rollback(): void
+    {
+        $this->addMigration(
+            '2026_01_01_000001_create_test_rollback_tbl',
+            'CREATE TABLE IF NOT EXISTS test_rollback_tbl (id INT)',
+            'DROP TABLE IF EXISTS test_rollback_tbl'
+        );
+        $this->migrate();
+
+        // Delete the migration file from disk (record still in DB)
+        unlink($this->tmpMigrations . '/2026_01_01_000001_create_test_rollback_tbl.php');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessageMatches('/Migration file not found/');
+        $this->rollback();
+    }
 }

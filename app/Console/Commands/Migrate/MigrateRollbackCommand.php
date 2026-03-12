@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Migrate;
 
 use Throwable;
+use RuntimeException;
 
 /** Откатывает все миграции последнего batch в обратном порядке. */
 class MigrateRollbackCommand
@@ -37,8 +38,7 @@ class MigrateRollbackCommand
             $file = $this->migrationsPath . '/' . $name . '.php';
 
             if (!file_exists($file)) {
-                echo "Migration file not found: {$name}.php" . PHP_EOL;
-                exit(1);
+                throw new RuntimeException("Migration file not found: {$name}.php");
             }
 
             try {
@@ -47,8 +47,7 @@ class MigrateRollbackCommand
                 qi('DELETE FROM migrations WHERE id = ?', [$row['id']]);
                 echo "Rolled back: {$name}" . PHP_EOL;
             } catch (Throwable $e) {
-                echo "Error rolling back {$name}: " . $e->getMessage() . PHP_EOL;
-                exit(1);
+                throw new RuntimeException("Error rolling back {$name}: " . $e->getMessage());
             }
         }
     }
