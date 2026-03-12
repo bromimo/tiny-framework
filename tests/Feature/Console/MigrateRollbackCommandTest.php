@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Console;
 
-use App\Core\Database;
 use App\Facades\DB;
+use App\Core\Database;
 use PHPUnit\Framework\TestCase;
 use App\Console\Commands\Migrate\MigrateCommand;
 use App\Console\Commands\Migrate\MigrateRollbackCommand;
@@ -86,7 +86,7 @@ class MigrateRollbackCommandTest extends TestCase
 
     public function test_outputs_nothing_to_rollback_when_empty(): void
     {
-        // migrate creates migrations table and outputs "Nothing to migrate." (no files)
+        // migrate создаёт таблицу и выводит "Nothing to migrate." (нет файлов в tmpMigrations)
         $this->migrate();
 
         $this->expectOutputRegex('/Nothing to rollback\./');

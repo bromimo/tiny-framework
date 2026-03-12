@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Console;
 
-use App\Core\Database;
 use App\Facades\DB;
+use App\Core\Database;
 use PHPUnit\Framework\TestCase;
 use App\Console\Commands\Migrate\MigrateCommand;
 
