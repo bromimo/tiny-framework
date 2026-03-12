@@ -44,7 +44,12 @@ class MakeMigrationCommand
             throw new RuntimeException('Migration name is required.');
         }
 
-        $stubPath  = $this->resolveStub($stubOverride);
+        $stubPath = $this->resolveStub($stubOverride);
+
+        if (!file_exists($stubPath)) {
+            throw new RuntimeException("Stub file not found: {$stubPath}");
+        }
+
         $content   = file_get_contents($stubPath);
         $timestamp = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y_m_d_His');
         $filename  = "{$timestamp}_{$name}.php";

@@ -34,6 +34,11 @@ class Kernel
         }
 
         $handler = new $this->commands[$command]();
-        $handler->handle($args);
+        try {
+            $handler->handle($args);
+        } catch (RuntimeException $e) {
+            echo $e->getMessage() . PHP_EOL;
+            exit(1);
+        }
     }
 }
