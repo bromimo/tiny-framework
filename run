@@ -4,5 +4,9 @@ require __DIR__ . '/bootstrap/cli.php';
 
 use App\Console\Kernel;
 
-$kernel = new Kernel();
-$kernel->handle($argv);
+try {
+    $kernel = new Kernel();
+    $kernel->handle($argv);
+} catch (\RuntimeException $e) {
+    exit(1);
+}
