@@ -1,0 +1,8 @@
+#\!/usr/bin/env php
+<?php
+require __DIR__ . '/bootstrap/cli.php';
+
+use App\Console\Kernel;
+
+$kernel = new Kernel();
+$kernel->handle($argv);
