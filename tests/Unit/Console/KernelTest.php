@@ -14,7 +14,7 @@ class KernelTest extends TestCase
         try {
             (new Kernel())->handle(['run', 'nonexistent']);
         } catch (\Throwable) {
-            // exit() бросает в тестах — перехватываем
+            // Kernel бросает RuntimeException — перехватываем
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use RuntimeException;
 use App\Console\Commands\Make\MakeMigrationCommand;
 use App\Console\Commands\Migrate\MigrateCommand;
 use App\Console\Commands\Migrate\MigrateRollbackCommand;
@@ -29,7 +30,7 @@ class Kernel
         if ($command === null || !isset($this->commands[$command])) {
             $available = implode(', ', array_keys($this->commands));
             echo "Unknown command. Available: {$available}" . PHP_EOL;
-            throw new \RuntimeException('Unknown command: ' . ($command ?? '(none)'));
+            throw new RuntimeException('Unknown command: ' . ($command ?? '(none)'));
         }
 
         $handler = new $this->commands[$command]();
