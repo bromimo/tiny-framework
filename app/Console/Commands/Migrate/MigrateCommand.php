@@ -4,12 +4,13 @@ namespace App\Console\Commands\Migrate;
 
 use Throwable;
 use RuntimeException;
+use App\Console\CommandInterface;
 
 /** Применяет все непримененные миграции из database/migrations/.
  * Создаёт таблицу migrations при первом запуске.
  * Каждый запуск — отдельный batch.
  */
-class MigrateCommand
+class MigrateCommand implements CommandInterface
 {
     use EnsuresMigrationsTable;
 

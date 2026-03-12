@@ -12,7 +12,7 @@ use App\Console\Commands\Migrate\MigrateRollbackCommand;
  */
 class Kernel
 {
-    /** @var array<string, class-string> */
+    /** @var array<string, class-string<CommandInterface>> */
     private array $commands = [
         'migrate'          => MigrateCommand::class,
         'migrate:rollback' => MigrateRollbackCommand::class,
@@ -33,6 +33,7 @@ class Kernel
             throw new RuntimeException('Unknown command: ' . ($command ?? '(none)'));
         }
 
+        /** @var CommandInterface $handler */
         $handler = new $this->commands[$command]();
         try {
             $handler->handle($args);

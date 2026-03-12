@@ -5,11 +5,12 @@ namespace App\Console\Commands\Make;
 use DateTimeZone;
 use RuntimeException;
 use DateTimeImmutable;
+use App\Console\CommandInterface;
 
 /** Генерирует файл-заготовку новой миграции на основе стаба.
  * Использует конфиг database.migrations.stub или дефолтный путь.
  */
-class MakeMigrationCommand
+class MakeMigrationCommand implements CommandInterface
 {
     private string $migrationsPath;
     private string $stubsPath;

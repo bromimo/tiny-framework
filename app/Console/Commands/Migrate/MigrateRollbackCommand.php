@@ -4,9 +4,10 @@ namespace App\Console\Commands\Migrate;
 
 use Throwable;
 use RuntimeException;
+use App\Console\CommandInterface;
 
 /** Откатывает все миграции последнего batch в обратном порядке. */
-class MigrateRollbackCommand
+class MigrateRollbackCommand implements CommandInterface
 {
     use EnsuresMigrationsTable;
 
