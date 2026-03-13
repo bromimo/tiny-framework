@@ -29,13 +29,23 @@ class ApiResponse
     }
 
     /** Ответ с ошибкой.
-     * @param mixed $message
-     * @param int   $status
+     * @param string $message
+     * @param int    $status
      * @return Response
      */
-    public static function error(mixed $message, int $status = 400): Response
+    public static function error(string $message, int $status = 400): Response
     {
         return CoreApiResponse::error($message, $status);
+    }
+
+    /** Ответ с ошибкой валидации (422).
+     * @param array<string, string> $fields
+     * @param string                $message
+     * @return Response
+     */
+    public static function validationError(array $fields, string $message = 'Validation failed.'): Response
+    {
+        return CoreApiResponse::validationError($fields, $message);
     }
 
     /** Ответ 404 Not Found.

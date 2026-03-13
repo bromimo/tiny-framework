@@ -32,13 +32,23 @@ class ApiResponse
     }
 
     /** Ответ с ошибкой.
-     * @param mixed $message
-     * @param int   $status
+     * @param string $message Текст ошибки.
+     * @param int    $status  HTTP-статус.
      * @return Response
      */
-    public static function error(mixed $message, int $status = 400): Response
+    public static function error(string $message, int $status = 400): Response
     {
-        return self::json(['error' => $message], $status);
+        return self::json(['error' => ['message' => $message]], $status);
+    }
+
+    /** Ответ с ошибкой валидации (422).
+     * @param array<string, string> $fields  Ошибки полей.
+     * @param string                $message Общее сообщение.
+     * @return Response
+     */
+    public static function validationError(array $fields, string $message = 'Validation failed.'): Response
+    {
+        return self::json(['error' => ['message' => $message, 'fields' => $fields]], 422);
     }
 
     /** Ответ 404 Not Found.

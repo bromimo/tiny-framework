@@ -25,7 +25,16 @@ class ApiResponseTest extends TestCase
     {
         $response = ApiResponse::error('Something went wrong', 400);
         $this->assertSame(400, $response->getStatus());
-        $this->assertSame(['error' => 'Something went wrong'], json_decode($response->getBody(), true));
+        $this->assertSame(['error' => ['message' => 'Something went wrong']], json_decode($response->getBody(), true));
+    }
+
+    public function test_validation_error_wraps_fields_with_422(): void
+    {
+        $response = ApiResponse::validationError(['email' => 'Required.']);
+        $this->assertSame(422, $response->getStatus());
+        $body = json_decode($response->getBody(), true);
+        $this->assertSame('Validation failed.', $body['error']['message']);
+        $this->assertSame(['email' => 'Required.'], $body['error']['fields']);
     }
 
     public function test_not_found_returns_404(): void

@@ -49,7 +49,7 @@ class RateLimitMiddleware implements MiddlewareInterface
             $expiresAt  = Cache::get($expires) ?? (time() + $this->decaySeconds);
             $retryAfter = max(0, (int) ($expiresAt - time()));
 
-            return ApiResponse::error(['message' => 'Too many requests.'], 429)
+            return ApiResponse::error('Too many requests.', 429)
                 ->withHeader('Retry-After', (string) $retryAfter);
         }
 

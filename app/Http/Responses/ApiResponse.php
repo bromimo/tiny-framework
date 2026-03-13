@@ -16,9 +16,14 @@ class ApiResponse
         return self::json(['data' => $data], 201);
     }
 
-    public static function error(mixed $message, int $status = 400): Response
+    public static function error(string $message, int $status = 400): Response
     {
-        return self::json(['error' => $message], $status);
+        return self::json(['error' => ['message' => $message]], $status);
+    }
+
+    public static function validationError(array $fields, string $message = 'Validation failed.'): Response
+    {
+        return self::json(['error' => ['message' => $message, 'fields' => $fields]], 422);
     }
 
     public static function notFound(string $message = 'Not found'): Response

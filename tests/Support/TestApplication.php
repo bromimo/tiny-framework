@@ -76,12 +76,12 @@ class TestApplication
         try {
             return $this->router->dispatch($request);
         } catch (ValidationException $e) {
-            return ApiResponse::error($e->getErrors(), 422);
+            return ApiResponse::validationError($e->getErrors());
         } catch (ModelNotFoundException $e) {
             return ApiResponse::notFound($e->getMessage());
         } catch (QueryException $e) {
             if ($e->getSqlState() === '23000') {
-                return ApiResponse::error(['email' => 'This email is already in use.'], 422);
+                return ApiResponse::validationError(['email' => 'This email is already in use.']);
             }
             return ApiResponse::error('Internal server error.', 500);
         } catch (NotFoundException $e) {

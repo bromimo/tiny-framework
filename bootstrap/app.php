@@ -73,12 +73,12 @@ $request = new Request($method, $path, $_GET, $body, $headers);
 try {
     Route::dispatch($request)->send();
 } catch (ValidationException $e) {
-    ApiResponse::error($e->getErrors(), 422)->send();
+    ApiResponse::validationError($e->getErrors())->send();
 } catch (ModelNotFoundException $e) {
     ApiResponse::notFound($e->getMessage())->send();
 } catch (QueryException $e) {
     if ($e->getSqlState() === '23000') {
-        ApiResponse::error(['email' => 'This email is already in use.'], 422)->send();
+        ApiResponse::validationError(['email' => 'This email is already in use.'])->send();
     } else {
         ApiResponse::error('Internal server error.', 500)->send();
     }
