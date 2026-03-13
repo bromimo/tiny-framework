@@ -2,10 +2,20 @@
 
 namespace Tests\Support;
 
+use App\Facades\ApiResponse;
 use TinyRouter\Facade\Route;
 use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
+use App\Abstracts\BaseModel;
+use App\Abstracts\BaseRequest;
 use TinyRouter\Routing\Router;
+use App\Exceptions\QueryException;
+use App\Exceptions\ValidationException;
+use App\Exceptions\ModelNotFoundException;
+use App\Http\Middleware\AuthMiddleware;
+use App\Http\Middleware\RateLimitMiddleware;
+use TinyRouter\Exception\NotFoundException;
+use TinyRouter\Exception\MethodNotAllowedException;
 
 /** Тестовое приложение — зеркало bootstrap/app.php без вызова dispatch()->send().
  * Создаёт свежий Router при каждой инициализации и регистрирует маршруты через require.
@@ -19,27 +29,31 @@ class TestApplication
     {
         $this->router = new Router();
 
-        $this->router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);
+        $this->router->addMiddlewareAlias('auth:api', AuthMiddleware::class);
 
         $this->router->addMiddlewareFactory(
             'rate_limit',
-            function (string $params): \App\Http\Middleware\RateLimitMiddleware {
-                [$max, $decay] = explode(',', $params);
-                return new \App\Http\Middleware\RateLimitMiddleware((int) $max, (int) $decay);
+            function (string $params): RateLimitMiddleware {
+                $parts = explode(',', $params);
+                if (count($parts) !== 2) {
+                    throw new \InvalidArgumentException("rate_limit middleware expects 'max,seconds', got: '{$params}'");
+                }
+                [$max, $decay] = $parts;
+                return new RateLimitMiddleware((int) $max, (int) $decay);
             }
         );
 
         $this->router->addTypeResolver(
-            \App\Abstracts\BaseRequest::class,
+            BaseRequest::class,
             fn(string $type, Request $req) => new $type($req)
         );
 
         $this->router->addTypeResolver(
-            \App\Abstracts\BaseModel::class,
+            BaseModel::class,
             function (string $type, Request $req) {
                 $id = (int) ($req->params['id'] ?? 0);
-                if ($id === 0) throw new \App\Exceptions\ModelNotFoundException();
-                return $type::findById($id) ?? throw new \App\Exceptions\ModelNotFoundException();
+                if ($id === 0) throw new ModelNotFoundException();
+                return $type::findById($id) ?? throw new ModelNotFoundException();
             }
         );
 
@@ -57,21 +71,21 @@ class TestApplication
     {
         try {
             return $this->router->dispatch($request);
-        } catch (\App\Exceptions\ValidationException $e) {
-            return \App\Facades\ApiResponse::error($e->getErrors(), 422);
-        } catch (\App\Exceptions\ModelNotFoundException $e) {
-            return \App\Facades\ApiResponse::notFound($e->getMessage());
-        } catch (\App\Exceptions\QueryException $e) {
+        } catch (ValidationException $e) {
+            return ApiResponse::error($e->getErrors(), 422);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::notFound($e->getMessage());
+        } catch (QueryException $e) {
             if ($e->getSqlState() === '23000') {
-                return \App\Facades\ApiResponse::error(['email' => 'This email is already in use.'], 422);
+                return ApiResponse::error(['email' => 'This email is already in use.'], 422);
             }
-            return \App\Facades\ApiResponse::error('Internal server error.', 500);
-        } catch (\TinyRouter\Exception\NotFoundException $e) {
-            return \App\Facades\ApiResponse::notFound('Route not found.');
-        } catch (\TinyRouter\Exception\MethodNotAllowedException $e) {
-            return \App\Facades\ApiResponse::error('Method not allowed.', 405);
+            return ApiResponse::error('Internal server error.', 500);
+        } catch (NotFoundException $e) {
+            return ApiResponse::notFound('Route not found.');
+        } catch (MethodNotAllowedException $e) {
+            return ApiResponse::error('Method not allowed.', 405);
         } catch (\Throwable $e) {
-            return \App\Facades\ApiResponse::error('Internal server error.', 500);
+            return ApiResponse::error('Internal server error.', 500);
         }
     }
 }

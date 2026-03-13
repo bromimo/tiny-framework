@@ -37,8 +37,8 @@ class TestResponse
      */
     public function getHeader(string $name): ?string
     {
-        $headers = $this->response->getHeaders();
-        return $headers[$name] ?? $headers[strtolower($name)] ?? null;
+        $headers = array_change_key_case($this->response->getHeaders(), CASE_LOWER);
+        return $headers[strtolower($name)] ?? null;
     }
 
     /** Проверить HTTP-статус.
