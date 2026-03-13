@@ -4,7 +4,7 @@ use TinyRouter\Facade\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\UserController;
 
-Route::prefix('api/v1')->group(function () {
+Route::prefix('api/v1')->middleware('cors')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login'])->middleware('rate_limit:5,60');
         Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');

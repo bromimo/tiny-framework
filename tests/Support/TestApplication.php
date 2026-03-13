@@ -11,6 +11,7 @@ use App\Abstracts\BaseRequest;
 use TinyRouter\Routing\Router;
 use App\Exceptions\QueryException;
 use App\Http\Middleware\AuthMiddleware;
+use App\Http\Middleware\CorsMiddleware;
 use App\Exceptions\ValidationException;
 use App\Exceptions\ModelNotFoundException;
 use TinyRouter\Exception\NotFoundException;
@@ -31,6 +32,7 @@ class TestApplication
         $this->router = new Router();
 
         $this->router->addMiddlewareAlias('auth:api', AuthMiddleware::class);
+        $this->router->addMiddlewareAlias('cors', CorsMiddleware::class);
 
         $this->router->addMiddlewareFactory(
             'rate_limit',

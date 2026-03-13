@@ -21,6 +21,7 @@ Config::load(__DIR__ . '/../config');
 $router = new Router();
 
 $router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);
+$router->addMiddlewareAlias('cors', \App\Http\Middleware\CorsMiddleware::class);
 
 // RateLimitMiddleware — создаётся в P2-T5; фабрика регистрируется заранее.
 $router->addMiddlewareFactory('rate_limit', function (string $params): \App\Http\Middleware\RateLimitMiddleware {
