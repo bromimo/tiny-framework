@@ -10,7 +10,7 @@ Route::prefix('api/v1')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
     });
 
-    Route::prefix('users')->middleware('auth:api')->group(function () {
+    Route::prefix('users')->middleware('auth:api', 'rate_limit:60,60')->group(function () {
         Route::get('', [UserController::class, 'index'])->name('users.index');
         Route::get('{id}', [UserController::class, 'show']);
         Route::post('', [UserController::class, 'store']);
