@@ -65,9 +65,17 @@ foreach ($_SERVER as $key => $value) {
 }
 
 $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-$body = str_contains($contentType, 'application/json')
-    ? (json_decode(file_get_contents('php://input'), true) ?? [])
-    : $_POST;
+if (str_contains($contentType, 'application/json')) {
+    $raw  = file_get_contents('php://input');
+    $body = json_decode($raw, true);
+    if ($raw !== '' && $body === null && json_last_error() !== JSON_ERROR_NONE) {
+        ApiResponse::error('Invalid JSON: ' . json_last_error_msg(), 400)->send();
+        exit;
+    }
+    $body = $body ?? [];
+} else {
+    $body = $_POST;
+}
 $request = new Request($method, $path, $_GET, $body, $headers);
 
 try {
