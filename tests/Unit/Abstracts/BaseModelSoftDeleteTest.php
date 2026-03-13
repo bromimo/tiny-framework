@@ -88,6 +88,19 @@ class BaseModelSoftDeleteTest extends TestCase
         $this->assertNotNull(SoftStub::findById($id));
     }
 
+    // findByField
+
+    public function test_find_by_field_excludes_soft_deleted(): void
+    {
+        qi("INSERT INTO soft_stubs (name, deleted_at) VALUES ('SoftDeleted', NOW())");
+        qi("INSERT INTO soft_stubs (name) VALUES ('SoftDeleted')");
+
+        $result = SoftStub::findByField('name', 'SoftDeleted');
+
+        $this->assertNotNull($result);
+        $this->assertNull($result->deleted_at);
+    }
+
     // findAll
 
     public function test_find_all_excludes_soft_deleted(): void
@@ -117,6 +130,7 @@ class BaseModelSoftDeleteTest extends TestCase
     public function test_restore_throws_logic_exception_when_soft_delete_disabled(): void
     {
         $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('restore() called on model without soft delete enabled');
         HardStub::restore(1);
     }
 
