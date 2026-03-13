@@ -92,13 +92,11 @@ class BaseModelSoftDeleteTest extends TestCase
 
     public function test_find_by_field_excludes_soft_deleted(): void
     {
-        qi("INSERT INTO soft_stubs (name, deleted_at) VALUES ('SoftDeleted', NOW())");
-        qi("INSERT INTO soft_stubs (name) VALUES ('SoftDeleted')");
+        qi("INSERT INTO soft_stubs (name, deleted_at) VALUES ('UniqueDeleted', NOW())");
 
-        $result = SoftStub::findByField('name', 'SoftDeleted');
+        $result = SoftStub::findByField('name', 'UniqueDeleted');
 
-        $this->assertNotNull($result);
-        $this->assertNull($result->deleted_at);
+        $this->assertNull($result);
     }
 
     // findAll

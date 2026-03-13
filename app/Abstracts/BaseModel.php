@@ -115,6 +115,7 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /** Жёстко удалить запись независимо от настройки мягкого удаления.
+     * Ничего не делает если запись с указанным ID не найдена.
      * @param int $id ID записи.
      * @return void
      */
