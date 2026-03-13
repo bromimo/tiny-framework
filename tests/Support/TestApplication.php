@@ -65,11 +65,14 @@ class TestApplication
     }
 
     /** Выполнить запрос и вернуть объект ответа (без send()).
+     * Заполняет $_SERVER из заголовков Request, чтобы getBearerToken() работал корректно.
      * @param Request $request
      * @return Response
      */
     public function dispatch(Request $request): Response
     {
+        $this->populateServerFromRequest($request);
+
         try {
             return $this->router->dispatch($request);
         } catch (ValidationException $e) {
@@ -88,5 +91,20 @@ class TestApplication
         } catch (\Throwable $e) {
             return ApiResponse::error('Internal server error.', 500);
         }
+    }
+
+    /** Перенести заголовки и query-параметры из объекта Request в суперглобалы.
+     * Нужно для совместимости с getBearerToken() ($_SERVER) и контроллерами, читающими $_GET.
+     * @param Request $request
+     * @return void
+     */
+    private function populateServerFromRequest(Request $request): void
+    {
+        foreach ($request->headers as $name => $value) {
+            $key           = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+            $_SERVER[$key] = $value;
+        }
+
+        $_GET = $request->query;
     }
 }
