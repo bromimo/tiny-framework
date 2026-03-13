@@ -78,24 +78,26 @@ if (str_contains($contentType, 'application/json')) {
     $body = $_POST;
 }
 $request = new Request($method, $path, $_GET, $body, $headers);
+$requestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? generateUuid();
 
 try {
-    Route::dispatch($request)->send();
+    $response = Route::dispatch($request);
+    $response->withHeader('X-Request-Id', $requestId)->send();
 } catch (ValidationException $e) {
-    ApiResponse::validationError($e->getErrors())->send();
+    ApiResponse::validationError($e->getErrors())->withHeader('X-Request-Id', $requestId)->send();
 } catch (ModelNotFoundException $e) {
-    ApiResponse::notFound($e->getMessage())->send();
+    ApiResponse::notFound($e->getMessage())->withHeader('X-Request-Id', $requestId)->send();
 } catch (QueryException $e) {
     if ($e->getSqlState() === '23000') {
-        ApiResponse::validationError(['email' => 'This email is already in use.'])->send();
+        ApiResponse::validationError(['email' => 'This email is already in use.'])->withHeader('X-Request-Id', $requestId)->send();
     } else {
-        ApiResponse::error('Internal server error.', 500)->send();
+        ApiResponse::error('Internal server error.', 500)->withHeader('X-Request-Id', $requestId)->send();
     }
 } catch (\TinyRouter\Exception\NotFoundException $e) {
-    ApiResponse::notFound('Route not found.')->send();
+    ApiResponse::notFound('Route not found.')->withHeader('X-Request-Id', $requestId)->send();
 } catch (\TinyRouter\Exception\MethodNotAllowedException $e) {
-    ApiResponse::error('Method not allowed.', 405)->send();
+    ApiResponse::error('Method not allowed.', 405)->withHeader('X-Request-Id', $requestId)->send();
 } catch (\Throwable $e) {
-    \App\Core\Logger::error($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-    ApiResponse::error('Internal server error.', 500)->send();
+    \App\Core\Logger::error("[{$requestId}] " . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+    ApiResponse::error('Internal server error.', 500)->withHeader('X-Request-Id', $requestId)->send();
 }
