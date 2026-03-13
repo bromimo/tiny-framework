@@ -182,10 +182,10 @@ if (!function_exists('success')) {
 
 if (!function_exists('created')) {
     /** Вернуть HTTP-ответ 201 с созданным ресурсом.
-     * @param mixed $data Данные ответа.
+     * @param \App\Abstracts\BaseResource|array<mixed> $data Данные ответа.
      * @return \TinyRouter\Http\Response
      */
-    function created(mixed $data): \TinyRouter\Http\Response
+    function created(\App\Abstracts\BaseResource|array $data): \TinyRouter\Http\Response
     {
         return \App\Facades\ApiResponse::created($data);
     }

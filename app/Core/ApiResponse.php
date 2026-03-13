@@ -2,8 +2,8 @@
 
 namespace App\Core;
 
-use App\Abstracts\BaseResource;
 use TinyRouter\Http\Response;
+use App\Abstracts\BaseResource;
 
 /** Формирование JSON-ответов API. */
 class ApiResponse
@@ -24,6 +24,7 @@ class ApiResponse
 
     /** Ответ 201 Created.
      * @param BaseResource|array<mixed> $data
+     * @return Response
      */
     public static function created(BaseResource|array $data): Response
     {
@@ -32,6 +33,8 @@ class ApiResponse
 
     /** Ответ с ошибкой.
      * @param mixed $message
+     * @param int   $status
+     * @return Response
      */
     public static function error(mixed $message, int $status = 400): Response
     {
@@ -40,6 +43,7 @@ class ApiResponse
 
     /** Ответ 404 Not Found.
      * @param string $message
+     * @return Response
      */
     public static function notFound(string $message = 'Not found.'): Response
     {
@@ -48,6 +52,7 @@ class ApiResponse
 
     /** Ответ 401 Unauthorized.
      * @param string $message
+     * @return Response
      */
     public static function unauthorized(string $message = 'Unauthorized.'): Response
     {
@@ -56,6 +61,8 @@ class ApiResponse
 
     /** Сериализовать payload в JSON-ответ.
      * @param array<mixed> $payload
+     * @param int          $status
+     * @return Response
      */
     private static function json(array $payload, int $status): Response
     {
