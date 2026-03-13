@@ -129,9 +129,18 @@ class FileDriverTest extends TestCase
     public function test_increment_preserves_ttl_of_existing_key(): void
     {
         $this->cache->increment('counter', 3600);
-        $valueBefore = $this->cache->increment('counter'); // 2nd increment
-        // The key should still be readable
-        $this->assertSame(2, $valueBefore);
+
+        // Read expires_at from the file after first increment
+        $cachePath = $this->dir . '/' . md5('counter') . '.cache';
+        $payload   = unserialize(file_get_contents($cachePath));
+        $expiresAt = $payload['expires_at'];
+
+        // Second increment — expires_at must not change
+        $this->cache->increment('counter');
+
+        $payload = unserialize(file_get_contents($cachePath));
+        $this->assertSame($expiresAt, $payload['expires_at']);
+        $this->assertSame(2, $payload['value']);
     }
 
     public function test_increment_reinitialises_expired_key(): void
