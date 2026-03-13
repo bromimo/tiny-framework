@@ -13,7 +13,8 @@ use TinyRouter\Contract\MiddlewareInterface;
  */
 class RateLimitMiddleware implements MiddlewareInterface
 {
-    /** @param int $maxAttempts  Максимальное количество запросов в окне.
+    /** Инициализировать middleware с параметрами ограничения запросов.
+     * @param int $maxAttempts  Максимальное количество запросов в окне.
      * @param int $decaySeconds Размер окна в секундах.
      */
     public function __construct(
