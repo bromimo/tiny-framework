@@ -22,8 +22,13 @@ $router = new Router();
 
 $router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);
 
+// RateLimitMiddleware — создаётся в P2-T5; фабрика регистрируется заранее.
 $router->addMiddlewareFactory('rate_limit', function (string $params): \App\Http\Middleware\RateLimitMiddleware {
-    [$max, $decay] = explode(',', $params);
+    $parts = explode(',', $params);
+    if (count($parts) !== 2) {
+        throw new \InvalidArgumentException("rate_limit middleware expects 'max,seconds', got: '{$params}'");
+    }
+    [$max, $decay] = $parts;
     return new \App\Http\Middleware\RateLimitMiddleware((int) $max, (int) $decay);
 });
 

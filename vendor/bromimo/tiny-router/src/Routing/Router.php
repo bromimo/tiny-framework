@@ -278,7 +278,7 @@ class Router
             return $middleware;
         }
 
-        // Exact alias match — existing behaviour ('auth:api')
+        // Exact alias takes priority — checked before parameterized split to support aliases containing ':', e.g. 'auth:api'
         if (isset($this->middlewareAliases[$middleware])) {
             return new $this->middlewareAliases[$middleware]();
         }

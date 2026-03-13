@@ -82,7 +82,7 @@ class Cache
 
     /** Атомарно увеличить счётчик.
      * @param string $key
-     * @param int    $ttl Время жизни при создании ключа. 0 — бессрочно.
+     * @param int    $ttl Время жизни при создании ключа. 0 — бессрочно. Если ключ существует — существующий TTL сохраняется.
      * @return int Новое значение счётчика.
      */
     public static function increment(string $key, int $ttl = 0): int
