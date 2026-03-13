@@ -87,5 +87,6 @@ try {
 } catch (\TinyRouter\Exception\MethodNotAllowedException $e) {
     ApiResponse::error('Method not allowed.', 405)->send();
 } catch (\Throwable $e) {
+    \App\Core\Logger::error($e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
     ApiResponse::error('Internal server error.', 500)->send();
 }
