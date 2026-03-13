@@ -62,7 +62,7 @@ class MigrateRollbackCommandTest extends TestCase
         );
 
         $this->migrate();
-        $this->expectOutputRegex('/Rolled back: 2026_01_01_000001_create_test_rollback_tbl/');
+        $this->expectOutputRegex('/(?:\e\[\d+m)*Rolled back: (?:\e\[\d+m)*2026_01_01_000001_create_test_rollback_tbl/');
         $this->rollback();
 
         $row = q1("SHOW TABLES LIKE 'test_rollback_tbl'");

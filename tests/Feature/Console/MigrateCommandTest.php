@@ -55,7 +55,7 @@ class MigrateCommandTest extends TestCase
             'DROP TABLE IF EXISTS test_migrate_cmd'
         );
 
-        $this->expectOutputRegex('/Migrated: 2026_01_01_000001_create_test_migrate_cmd/');
+        $this->expectOutputRegex('/(?:\e\[\d+m)*Migrated: (?:\e\[\d+m)*2026_01_01_000001_create_test_migrate_cmd/');
         $this->makeCommand()->handle([]);
 
         $row = q1("SHOW TABLES LIKE 'test_migrate_cmd'");

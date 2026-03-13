@@ -2,11 +2,16 @@
 
 namespace App\Http\Requests;
 
-use App\Abstracts\BaseRequest;
 use App\DTOs\LoginDto;
+use App\Abstracts\BaseRequest;
+use App\Exceptions\ValidationException;
 
+/** Запрос аутентификации. */
 class LoginRequest extends BaseRequest
 {
+    /** Правила валидации.
+     * @return array<string, list<string>>
+     */
     protected function rules(): array
     {
         return [
@@ -15,11 +20,14 @@ class LoginRequest extends BaseRequest
         ];
     }
 
+    /** Валидировать данные и вернуть DTO аутентификации.
+     * @return LoginDto
+     * @throws ValidationException
+     */
     public function toDto(): LoginDto
     {
-        return new LoginDto(
-            email:    $this->input('email'),
-            password: $this->input('password'),
-        );
+        $data = $this->validated();
+
+        return LoginDto::from($data);
     }
 }

@@ -2,15 +2,21 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Responses\ApiResponse;
+use App\Core\Logger;
 use App\Models\Token;
-use App\Support\Logger;
-use TinyRouter\Contract\MiddlewareInterface;
+use App\Facades\ApiResponse;
 use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
+use TinyRouter\Contract\MiddlewareInterface;
 
+/** Middleware аутентификации: проверяет bearer-токен в заголовке Authorization. */
 class AuthMiddleware implements MiddlewareInterface
 {
+    /** Проверить токен и передать запрос дальше или вернуть 401.
+     * @param Request  $request
+     * @param callable $next
+     * @return Response
+     */
     public function handle(Request $request, callable $next): Response
     {
         $token = getBearerToken();

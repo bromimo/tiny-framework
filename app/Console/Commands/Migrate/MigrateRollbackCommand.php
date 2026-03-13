@@ -4,12 +4,15 @@ namespace App\Console\Commands\Migrate;
 
 use Throwable;
 use RuntimeException;
-use App\Console\CommandInterface;
+use App\Abstracts\BaseCommand;
+use App\Facades\DB;
 
 /** Откатывает все миграции последнего batch в обратном порядке. */
-class MigrateRollbackCommand implements CommandInterface
+class MigrateRollbackCommand extends BaseCommand
 {
     use EnsuresMigrationsTable;
+
+    public static string $name = 'migrate:rollback';
 
     private string $migrationsPath;
 
@@ -19,8 +22,14 @@ class MigrateRollbackCommand implements CommandInterface
         $this->migrationsPath = $migrationsPath ?? __DIR__ . '/../../../../database/migrations';
     }
 
+    /** Вернуть краткое описание команды. */
+    public function description(): string
+    {
+        return 'Откатить миграции последнего batch.';
+    }
+
     /** Выполнить команду.
-     * @param array<int, string> $args Аргументы командной строки (не используются).
+     * @param array<int, string> $args Аргументы командной строки.
      */
     public function handle(array $args): void
     {
@@ -32,7 +41,7 @@ class MigrateRollbackCommand implements CommandInterface
             return;
         }
 
-        $migrations = q('SELECT * FROM migrations WHERE batch = ? ORDER BY id DESC', [$batch]);
+        $migrations = q("SELECT * FROM {$this->migrationsTable} WHERE batch = ? ORDER BY id DESC", [$batch]);
 
         foreach ($migrations as $row) {
             $name = $row['migration'];
@@ -43,10 +52,12 @@ class MigrateRollbackCommand implements CommandInterface
             }
 
             try {
-                $migration = (static fn($f) => require $f)($file);
-                $migration->down();
-                qi('DELETE FROM migrations WHERE id = ?', [$row['id']]);
-                echo "Rolled back: {$name}" . PHP_EOL;
+                DB::transaction(function () use ($file, $row) {
+                    $migration = (static fn($f) => require $f)($file);
+                    $migration->down();
+                    qi("DELETE FROM {$this->migrationsTable} WHERE id = ?", [$row['id']]);
+                });
+                echo self::YELLOW . 'Rolled back: ' . self::RESET . $name . PHP_EOL;
             } catch (Throwable $e) {
                 throw new RuntimeException("Error rolling back {$name}: " . $e->getMessage());
             }
@@ -58,7 +69,7 @@ class MigrateRollbackCommand implements CommandInterface
      */
     private function getLastBatch(): ?int
     {
-        $row   = q1('SELECT MAX(batch) AS max_batch FROM migrations');
+        $row   = q1("SELECT MAX(batch) AS max_batch FROM {$this->migrationsTable}");
         $batch = $row['max_batch'] ?? null;
         return $batch !== null ? (int)$batch : null;
     }

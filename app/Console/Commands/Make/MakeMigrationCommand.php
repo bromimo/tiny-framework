@@ -5,13 +5,15 @@ namespace App\Console\Commands\Make;
 use DateTimeZone;
 use RuntimeException;
 use DateTimeImmutable;
-use App\Console\CommandInterface;
+use App\Abstracts\BaseCommand;
 
 /** Генерирует файл-заготовку новой миграции на основе стаба.
  * Использует конфиг database.migrations.stub или дефолтный путь.
  */
-class MakeMigrationCommand implements CommandInterface
+class MakeMigrationCommand extends BaseCommand
 {
+    public static string $name = 'make:migration';
+
     private string $migrationsPath;
     private string $stubsPath;
 
@@ -22,6 +24,12 @@ class MakeMigrationCommand implements CommandInterface
     {
         $this->migrationsPath = $migrationsPath ?? __DIR__ . '/../../../../database/migrations';
         $this->stubsPath      = $stubsPath ?? __DIR__ . '/../../../../stubs';
+    }
+
+    /** Вернуть краткое описание команды. */
+    public function description(): string
+    {
+        return 'Создать файл миграции: <name> [--stub=<path>]';
     }
 
     /** Выполнить команду.

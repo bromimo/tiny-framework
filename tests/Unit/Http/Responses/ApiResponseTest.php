@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Http\Responses;
+namespace Tests\Unit\Http\Responses;
 
 use App\Http\Responses\ApiResponse;
 use PHPUnit\Framework\TestCase;

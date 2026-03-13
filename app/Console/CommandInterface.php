@@ -9,4 +9,7 @@ interface CommandInterface
      * @param array<int, string> $args Аргументы командной строки.
      */
     public function handle(array $args): void;
+
+    /** Вернуть краткое описание команды. */
+    public function description(): string;
 }

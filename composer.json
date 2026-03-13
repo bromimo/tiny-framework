@@ -1,27 +1,37 @@
 {
-    "name": "proj1/users-api",
-    "description": "Simple REST API for managing users",
+    "name": "proj1/tiny-api",
+    "description": "Simple REST API",
+    "version": "1.0.0",
     "type": "project",
     "require": {
         "php": "^8.2",
         "bromimo/tiny-router": "^1.0",
-        "vlucas/phpdotenv": "^5.6"
+        "vlucas/phpdotenv": "^5.6",
+      "ext-pdo": "*",
+      "ext-memcached": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.0"
+        "phpunit/phpunit": "^11.0",
+        "fakerphp/faker": "^1.24"
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "app/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app/Helpers/uuid.php",
-            "app/Helpers/auth.php"
+            "app/Helpers/helpers.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "test":         "phpunit --colors=always --testdox",
+        "test:unit":    "phpunit --colors=always --testdox --testsuite Unit",
+        "test:feature": "phpunit --colors=always --testdox --testsuite Feature"
     }
 }

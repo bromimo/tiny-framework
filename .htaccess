@@ -1,0 +1,14 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Передать заголовок Authorization в PHP
+RewriteCond %{HTTP:Authorization} .+
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Отдавать существующие файлы из public/ напрямую
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Всё остальное — в public/index.php
+RewriteRule ^ public/index.php [L]

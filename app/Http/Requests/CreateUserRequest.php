@@ -2,28 +2,34 @@
 
 namespace App\Http\Requests;
 
-use App\Abstracts\BaseRequest;
 use App\DTOs\UserDto;
+use App\Abstracts\BaseRequest;
+use App\Exceptions\ValidationException;
 
+/** Запрос создания пользователя. */
 class CreateUserRequest extends BaseRequest
 {
+    /** Правила валидации.
+     * @return array<string, list<string>>
+     */
     protected function rules(): array
     {
         return [
-            'name'     => ['required', 'max:100'],
-            'surname'  => ['required', 'max:100'],
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'min:8'],
+            'first_name' => ['required', 'max:100'],
+            'last_name'  => ['required', 'max:100'],
+            'email'      => ['required', 'email', 'unique:users'],
+            'password'   => ['required', 'min:8', 'confirmed'],
         ];
     }
 
+    /** Валидировать данные и вернуть DTO пользователя.
+     * @return UserDto
+     * @throws ValidationException
+     */
     public function toDto(): UserDto
     {
-        return new UserDto(
-            name:     $this->input('name'),
-            surname:  $this->input('surname'),
-            email:    $this->input('email'),
-            password: $this->input('password'),
-        );
+        $data = $this->validated();
+
+        return UserDto::from($data);
     }
 }

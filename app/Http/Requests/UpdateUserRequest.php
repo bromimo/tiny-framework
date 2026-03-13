@@ -2,28 +2,39 @@
 
 namespace App\Http\Requests;
 
-use App\Abstracts\BaseRequest;
 use App\DTOs\UserDto;
+use App\Abstracts\BaseRequest;
+use App\Exceptions\ValidationException;
 
+/** Запрос обновления пользователя. */
 class UpdateUserRequest extends BaseRequest
 {
+    /** Правила валидации.
+     * @return array<string, list<string>>
+     */
     protected function rules(): array
     {
         return [
-            'name'     => ['max:100'],
-            'surname'  => ['max:100'],
-            'email'    => ['email'],
-            'password' => ['min:8'],
+            'first_name' => ['max:100'],
+            'last_name'  => ['max:100'],
+            'email'      => ['email'],
+            'password'   => ['min:8'],
         ];
     }
 
+    /** Валидировать данные и вернуть DTO пользователя.
+     * @return UserDto
+     * @throws ValidationException
+     */
     public function toDto(): UserDto
     {
+        $data = $this->validated();
+
         return new UserDto(
-            name:     $this->input('name', ''),
-            surname:  $this->input('surname', ''),
-            email:    $this->input('email', ''),
-            password: $this->input('password'),
+            first_name: $data['first_name'] ?? '',
+            last_name:  $data['last_name']  ?? '',
+            email:      $data['email']      ?? '',
+            password:   $data['password']   ?? null,
         );
     }
 }

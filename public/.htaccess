@@ -1,0 +1,10 @@
+Options -Indexes
+
+RewriteEngine On
+
+# Отдавать существующие файлы и директории напрямую
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Всё остальное — в index.php
+RewriteRule ^ index.php [L]

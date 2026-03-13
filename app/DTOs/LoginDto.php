@@ -11,11 +11,5 @@ readonly class LoginDto extends BaseDto
         public string $password,
     ) {}
 
-    public function toArray(): array
-    {
-        return [
-            'email'    => $this->email,
-            'password' => $this->password,
-        ];
-    }
+
 }

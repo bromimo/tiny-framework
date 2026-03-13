@@ -1,0 +1,21 @@
+<?php
+
+namespace DummyNamespace;
+
+use App\Models\DummyModel;
+use App\Abstracts\BaseResource;
+
+/** Ресурс DummyModel для API. */
+class DummyResourceResource extends BaseResource
+{
+    /** @return array<string, mixed> */
+    public function toArray(): array
+    {
+        /** @var DummyModel $DummyVariable */
+        $DummyVariable = $this->resource;
+
+        return [
+            'id' => $DummyVariable->id,
+        ];
+    }
+}

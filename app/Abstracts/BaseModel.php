@@ -151,6 +151,8 @@ abstract class BaseModel implements \JsonSerializable
         $where    = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
         $total    = (int) (q1('SELECT COUNT(*) AS count FROM ' . static::$table . $where)['count'] ?? 0);
         $lastPage = max(1, (int) ceil($total / $perPage));
+        // LIMIT/OFFSET вставляются как числа напрямую — PDO MySQL отвергает bound-параметры в LIMIT/OFFSET (трактует как строки).
+        // Значения гарантированно целые и зажаты через max()/min(), поэтому SQL-инъекция невозможна.
         $rows     = q('SELECT * FROM ' . static::$table . $where . " LIMIT {$perPage} OFFSET {$offset}");
 
         return [
