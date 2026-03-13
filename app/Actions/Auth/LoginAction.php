@@ -24,7 +24,12 @@ class LoginAction extends BaseAction
 
         $user = User::findByEmail($dto->email);
 
-        if ($user === null || !password_verify($dto->password, $user->password)) {
+        // Dummy-хеш для constant-time: password_verify() вызывается всегда,
+        // чтобы атакующий не мог определить существование email по времени ответа.
+        $hash          = $user?->password ?? '$2y$10$dummyhashtopreventtimingattackspadding000000000000000';
+        $passwordValid = password_verify($dto->password, $hash) && $user !== null;
+
+        if (!$passwordValid) {
             return ApiResponse::error('Invalid credentials.', 401);
         }
 
