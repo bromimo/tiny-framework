@@ -2,19 +2,19 @@
 
 namespace Tests\Support;
 
-use App\Facades\ApiResponse;
+use App\Abstracts\BaseModel;
 use TinyRouter\Facade\Route;
 use TinyRouter\Http\Request;
+use App\Facades\ApiResponse;
 use TinyRouter\Http\Response;
-use App\Abstracts\BaseModel;
 use App\Abstracts\BaseRequest;
 use TinyRouter\Routing\Router;
 use App\Exceptions\QueryException;
+use App\Http\Middleware\AuthMiddleware;
 use App\Exceptions\ValidationException;
 use App\Exceptions\ModelNotFoundException;
-use App\Http\Middleware\AuthMiddleware;
-use App\Http\Middleware\RateLimitMiddleware;
 use TinyRouter\Exception\NotFoundException;
+use App\Http\Middleware\RateLimitMiddleware;
 use TinyRouter\Exception\MethodNotAllowedException;
 
 /** Тестовое приложение — зеркало bootstrap/app.php без вызова dispatch()->send().
@@ -25,6 +25,7 @@ class TestApplication
 {
     private Router $router;
 
+    /** Инициализировать тестовое приложение: создать Router, зарегистрировать middleware и маршруты. */
     public function __construct()
     {
         $this->router = new Router();

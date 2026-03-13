@@ -2,8 +2,8 @@
 
 namespace Tests\Support;
 
-use TinyRouter\Http\Response;
 use PHPUnit\Framework\Assert;
+use TinyRouter\Http\Response;
 
 /** Обёртка над Response с удобными методами для тестирования. */
 class TestResponse
