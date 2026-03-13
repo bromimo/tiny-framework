@@ -4,8 +4,8 @@ namespace Tests\Feature\Http;
 
 use App\Facades\Cache;
 use App\Facades\Config;
-use Tests\Support\FeatureTestCase;
 use App\Core\Cache\CacheContract;
+use Tests\Support\FeatureTestCase;
 use App\Core\Cache\Drivers\ArrayDriver;
 
 /** Интеграционные тесты RateLimitMiddleware. */
@@ -82,9 +82,10 @@ class RateLimitMiddlewareTest extends FeatureTestCase
 
     public function test_429_response_includes_retry_after_header(): void
     {
-        for ($i = 0; $i < 6; $i++) {
-            $response = $this->attemptLogin();
+        for ($i = 0; $i < 5; $i++) {
+            $this->attemptLogin();
         }
+        $response = $this->attemptLogin(); // 6-й запрос — должен вернуть 429
 
         $response->assertStatus(429);
         $this->assertNotNull($response->getHeader('Retry-After'));
