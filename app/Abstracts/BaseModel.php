@@ -151,7 +151,7 @@ abstract class BaseModel implements \JsonSerializable
         $where    = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
         $total    = (int) (q1('SELECT COUNT(*) AS count FROM ' . static::$table . $where)['count'] ?? 0);
         $lastPage = max(1, (int) ceil($total / $perPage));
-        $rows     = q('SELECT * FROM ' . static::$table . $where . ' LIMIT ? OFFSET ?', [$perPage, $offset]);
+        $rows     = q('SELECT * FROM ' . static::$table . $where . " LIMIT {$perPage} OFFSET {$offset}");
 
         return [
             'data' => array_map(fn(array $row) => new static($row), $rows),
