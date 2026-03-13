@@ -28,24 +28,27 @@ class ArrayDriver implements CacheContract
             return $default;
         }
 
-        $item = $this->store[$key];
-
-        if ($item['expires_at'] !== null && time() > $item['expires_at']) {
+        if ($this->isExpired($this->store[$key])) {
             unset($this->store[$key]);
             return $default;
         }
 
-        return $item['value'];
+        return $this->store[$key]['value'];
     }
 
     /** @inheritDoc */
     public function has(string $key): bool
     {
-        return $this->get($key) !== null || (
-            array_key_exists($key, $this->store)
-            && ($this->store[$key]['expires_at'] === null || time() <= $this->store[$key]['expires_at'])
-            && $this->store[$key]['value'] === null
-        );
+        if (!array_key_exists($key, $this->store)) {
+            return false;
+        }
+
+        if ($this->isExpired($this->store[$key])) {
+            unset($this->store[$key]);
+            return false;
+        }
+
+        return true;
     }
 
     /** @inheritDoc */
@@ -66,7 +69,7 @@ class ArrayDriver implements CacheContract
         if (array_key_exists($key, $this->store)) {
             $item = $this->store[$key];
 
-            if ($item['expires_at'] !== null && time() > $item['expires_at']) {
+            if ($this->isExpired($item)) {
                 // Expired — init as new key
                 $this->store[$key] = [
                     'value'      => 1,
@@ -85,5 +88,14 @@ class ArrayDriver implements CacheContract
             'expires_at' => $ttl > 0 ? time() + $ttl : null,
         ];
         return 1;
+    }
+
+    /** Проверить, истёк ли срок хранения элемента.
+     * @param array{value: mixed, expires_at: int|null} $item
+     * @return bool
+     */
+    private function isExpired(array $item): bool
+    {
+        return $item['expires_at'] !== null && time() > $item['expires_at'];
     }
 }

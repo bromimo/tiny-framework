@@ -60,6 +60,8 @@ class MemcachedDriver implements CacheContract
     public function increment(string $key, int $ttl = 0): int
     {
         // Четвёртый аргумент: initial_value=1, expiry=$ttl — атомарная инициализация при отсутствии ключа.
+        // При ошибке сервера Memcached::increment() возвращает false — возвращаем 1 как безопасный fallback.
+        // Для rate-limiting это означает «первая попытка» вместо блокировки, что предпочтительнее отказа сервиса.
         $result = $this->memcached->increment($key, 1, 1, $ttl);
         return $result === false ? 1 : (int) $result;
     }
