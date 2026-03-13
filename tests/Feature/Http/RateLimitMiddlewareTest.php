@@ -60,9 +60,10 @@ class RateLimitMiddlewareTest extends FeatureTestCase
     public function test_request_at_limit_passes_through(): void
     {
         // Лимит равен 5 — 5-й запрос должен пройти
-        for ($i = 0; $i < 5; $i++) {
-            $response = $this->attemptLogin();
+        for ($i = 0; $i < 4; $i++) {
+            $this->attemptLogin();
         }
+        $response = $this->attemptLogin(); // 5-й запрос
 
         $response->assertStatus(200);
     }

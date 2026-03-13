@@ -5,8 +5,8 @@ namespace Tests\Feature\Http;
 use App\Facades\Cache;
 use App\Facades\Config;
 use Tests\Support\TestClient;
-use Tests\Support\FeatureTestCase;
 use App\Core\Cache\CacheContract;
+use Tests\Support\FeatureTestCase;
 use App\Core\Cache\Drivers\ArrayDriver;
 
 /** Интеграционные тесты контроллера пользователей. */
@@ -22,11 +22,11 @@ class UserControllerTest extends FeatureTestCase
      */
     protected function setUp(): void
     {
+        parent::setUp();
+
         $this->originalDriver = Cache::getDriver();
         Cache::setDriver(new ArrayDriver());
         Config::load(base_path('config'));
-
-        parent::setUp();
 
         // Создать пользователя-администратора и получить токен для всех тестов
         $hash = password_hash('admin123', PASSWORD_BCRYPT);
