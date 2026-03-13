@@ -29,7 +29,11 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     public function handle(Request $request, callable $next): Response
     {
-        $ip      = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $remoteAddr     = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $trustedProxies = config('auth.trusted_proxies', []);
+        $ip             = (in_array($remoteAddr, $trustedProxies, true) && isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+            ? trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0])
+            : $remoteAddr;
         $method  = $request->method->value;
         $path    = $request->path;
         $key     = "rate_limit:{$ip}:{$method}:{$path}";
