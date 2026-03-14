@@ -16,6 +16,7 @@ class MemcachedDriver implements CacheContract
     public function __construct(string $host, int $port)
     {
         $this->memcached = new Memcached();
+        $this->memcached->setOption(Memcached::OPT_BINARY_PROTOCOL, true);
         $this->memcached->addServer($host, $port);
     }
 
