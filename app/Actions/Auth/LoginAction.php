@@ -6,7 +6,6 @@ use App\DTOs\LoginDto;
 use App\Models\User;
 use App\Models\Token;
 use App\Facades\Event;
-use App\Abstracts\BaseAction;
 use App\Facades\ApiResponse;
 use Random\RandomException;
 use App\Events\LoginFailed;
@@ -14,16 +13,15 @@ use TinyRouter\Http\Response;
 use App\Events\LoginSucceeded;
 
 /** Аутентификация пользователя и выдача токена. */
-class LoginAction extends BaseAction
+class LoginAction
 {
     /** Выполнить вход: проверить credentials и создать токен.
-     * @param LoginDto ...$args
+     * @param LoginDto $dto Данные для входа.
      * @return Response
      * @throws RandomException
      */
-    public function run(mixed ...$args): Response
+    public function run(LoginDto $dto): Response
     {
-        [$dto] = $args;
 
         $user = User::findByEmail($dto->email);
 

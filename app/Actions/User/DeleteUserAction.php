@@ -3,18 +3,15 @@
 namespace App\Actions\User;
 
 use App\Models\User;
-use App\Abstracts\BaseAction;
 
 /** Удаление пользователя. */
-class DeleteUserAction extends BaseAction
+class DeleteUserAction
 {
     /** Удалить пользователя.
-     * @param User ...$args
-     * @return void
+     * @param User $user Пользователь для удаления.
      */
-    public function run(mixed ...$args): void
+    public function run(User $user): void
     {
-        [$user] = $args;
         User::deleteById($user->id);
     }
 }
