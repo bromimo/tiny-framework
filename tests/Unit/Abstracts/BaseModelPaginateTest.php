@@ -4,7 +4,9 @@ namespace Tests\Unit\Abstracts;
 
 use App\Facades\DB;
 use App\Core\Database;
+use TinyRouter\Http\Method;
 use App\Abstracts\BaseModel;
+use TinyRouter\Http\Request;
 use PHPUnit\Framework\TestCase;
 
 /** Модель-заглушка для тестирования пагинации. */
@@ -53,6 +55,12 @@ class BaseModelPaginateTest extends TestCase
         }
     }
 
+    /** Создать Request с query-параметрами пагинации. */
+    private function request(array $query = []): Request
+    {
+        return new Request(Method::GET, '/', $query, [], []);
+    }
+
     // -------------------------------------------------------------------------
     // meta values
 
@@ -60,7 +68,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(30);
 
-        $result = PageStub::paginate(1, 10);
+        $result = PageStub::paginate($this->request(['page' => 1, 'per_page' => 10]));
 
         $this->assertSame(30, $result['meta']['total']);
         $this->assertSame(10, $result['meta']['per_page']);
@@ -72,7 +80,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(25);
 
-        $result = PageStub::paginate(1, 10);
+        $result = PageStub::paginate($this->request(['page' => 1, 'per_page' => 10]));
 
         $this->assertCount(10, $result['data']);
     }
@@ -81,7 +89,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(25);
 
-        $result = PageStub::paginate(3, 10);
+        $result = PageStub::paginate($this->request(['page' => 3, 'per_page' => 10]));
 
         $this->assertCount(5, $result['data']);
     }
@@ -90,7 +98,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(5);
 
-        $result = PageStub::paginate(99, 10);
+        $result = PageStub::paginate($this->request(['page' => 99, 'per_page' => 10]));
 
         $this->assertCount(0, $result['data']);
         $this->assertSame(5,  $result['meta']['total']);
@@ -99,7 +107,7 @@ class BaseModelPaginateTest extends TestCase
 
     public function test_paginate_empty_table_returns_zero_total(): void
     {
-        $result = PageStub::paginate(1, 15);
+        $result = PageStub::paginate($this->request());
 
         $this->assertSame(0, $result['meta']['total']);
         $this->assertSame(1, $result['meta']['last_page']);
@@ -113,7 +121,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(5);
 
-        $result = PageStub::paginate(0, 10);
+        $result = PageStub::paginate($this->request(['page' => 0, 'per_page' => 10]));
 
         $this->assertSame(1, $result['meta']['current_page']);
         $this->assertCount(5, $result['data']);
@@ -123,7 +131,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(5);
 
-        $result = PageStub::paginate(1, 200);
+        $result = PageStub::paginate($this->request(['page' => 1, 'per_page' => 200]));
 
         $this->assertSame(100, $result['meta']['per_page']);
     }
@@ -132,7 +140,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(3);
 
-        $result = PageStub::paginate(1, 0);
+        $result = PageStub::paginate($this->request(['page' => 1, 'per_page' => 0]));
 
         $this->assertSame(1, $result['meta']['per_page']);
     }
@@ -145,7 +153,7 @@ class BaseModelPaginateTest extends TestCase
         $this->insertRows(3);
         qi("INSERT INTO page_stubs (name, deleted_at) VALUES ('Deleted', NOW())");
 
-        $result = SoftPageStub::paginate(1, 10);
+        $result = SoftPageStub::paginate($this->request(['page' => 1, 'per_page' => 10]));
 
         $this->assertSame(3, $result['meta']['total']);
         $this->assertCount(3, $result['data']);
@@ -158,7 +166,7 @@ class BaseModelPaginateTest extends TestCase
     {
         $this->insertRows(2);
 
-        $result = PageStub::paginate(1, 10);
+        $result = PageStub::paginate($this->request(['page' => 1, 'per_page' => 10]));
 
         $this->assertInstanceOf(PageStub::class, $result['data'][0]);
     }

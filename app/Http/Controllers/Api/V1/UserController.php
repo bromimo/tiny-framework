@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\User;
+use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
 use App\Exceptions\QueryException;
 use App\Actions\User\CreateUserAction;
@@ -17,13 +18,12 @@ use App\Http\Requests\Api\V1\UpdateUserRequest;
 class UserController
 {
     /** Список пользователей с пагинацией.
+     * @param Request $request
      * @return Response
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $page    = (int) ($_GET['page']     ?? 1);
-        $perPage = (int) ($_GET['per_page'] ?? 15);
-        $result  = User::paginate($page, $perPage);
+        $result = User::paginate($request);
 
         return success(UserResource::collection($result['data']), $result['meta']);
     }
