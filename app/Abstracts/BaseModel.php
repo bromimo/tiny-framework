@@ -4,6 +4,7 @@ namespace App\Abstracts;
 
 use LogicException;
 use PDOException;
+use TinyRouter\Http\Request;
 use App\Traits\HasObserver;
 use App\Exceptions\QueryException;
 
@@ -150,15 +151,14 @@ abstract class BaseModel implements \JsonSerializable
     }
 
     /** Вернуть постраничный результат.
-     * Параметр $page обрезается до минимума 1; $perPage — до диапазона 1–100.
-     * @param int $page     Номер страницы (минимум 1).
-     * @param int $perPage  Количество записей на страницу (1–100).
+     * Извлекает page и per_page из query-параметров запроса.
+     * @param Request $request HTTP-запрос с query-параметрами page и per_page.
      * @return array{data: array<int, static>, meta: array<string, int>}
      */
-    public static function paginate(int $page = 1, int $perPage = 15): array
+    public static function paginate(Request $request): array
     {
-        $page    = max(1, $page);
-        $perPage = max(1, min(100, $perPage));
+        $page    = max(1, (int) ($request->query['page'] ?? 1));
+        $perPage = max(1, min(100, (int) ($request->query['per_page'] ?? 15)));
         $offset  = ($page - 1) * $perPage;
 
         $where    = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
