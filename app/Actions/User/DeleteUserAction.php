@@ -3,7 +3,9 @@
 namespace App\Actions\User;
 
 use App\Models\User;
+use App\Facades\Event;
 use App\Abstracts\BaseAction;
+use App\Events\UserDeleted;
 
 /** Удаление пользователя. */
 class DeleteUserAction extends BaseAction
@@ -16,5 +18,6 @@ class DeleteUserAction extends BaseAction
     {
         [$user] = $args;
         User::deleteById($user->id);
+        Event::dispatch(new UserDeleted($user->id));
     }
 }

@@ -18,6 +18,10 @@ Env::load(__DIR__ . '/..');
 Cache::init();
 Config::load(__DIR__ . '/../config');
 
+$dispatcher = new \App\Core\EventDispatcher();
+\App\Facades\Event::setInstance($dispatcher);
+\App\Providers\EventServiceProvider::register($dispatcher);
+
 $router = new Router();
 
 $router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);

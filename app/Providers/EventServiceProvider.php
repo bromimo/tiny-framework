@@ -3,6 +3,13 @@
 namespace App\Providers;
 
 use App\Core\EventDispatcher;
+use App\Events\LoginFailed;
+use App\Events\UserCreated;
+use App\Events\UserDeleted;
+use App\Events\UserUpdated;
+use App\Events\LoginSucceeded;
+use App\Listeners\LogAuthEvent;
+use App\Listeners\LogUserChange;
 
 /** Провайдер событий. Регистрирует слушателей в диспетчере при загрузке приложения. */
 class EventServiceProvider
@@ -12,6 +19,10 @@ class EventServiceProvider
      */
     public static function register(EventDispatcher $dispatcher): void
     {
-        // Will be filled after events and listeners exist
+        $dispatcher->listen(LoginSucceeded::class, LogAuthEvent::class);
+        $dispatcher->listen(LoginFailed::class, LogAuthEvent::class);
+        $dispatcher->listen(UserCreated::class, LogUserChange::class);
+        $dispatcher->listen(UserUpdated::class, LogUserChange::class);
+        $dispatcher->listen(UserDeleted::class, LogUserChange::class);
     }
 }
