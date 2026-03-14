@@ -4,20 +4,18 @@ namespace App\Actions\User;
 
 use App\DTOs\UserDto;
 use App\Models\User;
-use App\Abstracts\BaseAction;
 use App\Exceptions\QueryException;
 
 /** Создание нового пользователя. */
-class CreateUserAction extends BaseAction
+class CreateUserAction
 {
     /** Создать пользователя из DTO.
-     * @param UserDto ...$args
+     * @param UserDto $dto Данные нового пользователя.
      * @return User
      * @throws QueryException
      */
-    public function run(mixed ...$args): User
+    public function run(UserDto $dto): User
     {
-        [$dto] = $args;
         return User::create($dto);
     }
 }

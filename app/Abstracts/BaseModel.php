@@ -4,6 +4,7 @@ namespace App\Abstracts;
 
 use LogicException;
 use PDOException;
+use App\Traits\HasObserver;
 use App\Exceptions\QueryException;
 
 /** Базовый класс для всех моделей.
@@ -12,6 +13,7 @@ use App\Exceptions\QueryException;
  */
 abstract class BaseModel implements \JsonSerializable
 {
+    use HasObserver;
     /** @var string Имя таблицы в базе данных. Должно быть переопределено в подклассе. */
     protected static string $table = '';
 
@@ -91,14 +93,25 @@ abstract class BaseModel implements \JsonSerializable
      * Если $softDelete = true — мягкое удаление (устанавливает deleted_at = NOW()).
      * Если $softDelete = false — жёсткое удаление (DELETE).
      * @param int $id ID записи.
-     * @return bool True если хотя бы одна строка была затронута.
+     * @return bool True если хотя бы одна строка была затронута. False если обсервер отменил.
      */
     public static function deleteById(int $id): bool
     {
-        if (static::$softDelete) {
-            return qi('UPDATE ' . static::$table . ' SET deleted_at = NOW() WHERE id = ?', [$id]) > 0;
+        if (static::fireObserverEvent('deleting', $id) === false) {
+            return false;
         }
-        return qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]) > 0;
+
+        if (static::$softDelete) {
+            $result = qi('UPDATE ' . static::$table . ' SET deleted_at = NOW() WHERE id = ?', [$id]) > 0;
+        } else {
+            $result = qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]) > 0;
+        }
+
+        if ($result) {
+            static::fireObserverEvent('deleted', $id);
+        }
+
+        return $result;
     }
 
     /** Восстановить мягко удалённую запись (очищает deleted_at).
@@ -168,12 +181,17 @@ abstract class BaseModel implements \JsonSerializable
 
     /** Вставить новую запись из массива данных (фильтруется по $fillable).
      * @param array<string, mixed> $data Данные для вставки.
-     * @return static Созданная запись.
+     * @return static|null Созданная запись, или null если обсервер отменил операцию.
      * @throws QueryException При ошибке выполнения запроса.
      */
-    protected static function insert(array $data): static
+    protected static function insert(array $data): ?static
     {
-        $data  = array_intersect_key($data, array_flip(static::$fillable));
+        $data = array_intersect_key($data, array_flip(static::$fillable));
+
+        if (static::fireObserverEvent('creating', $data) === false) {
+            return null;
+        }
+
         $cols  = implode(', ', array_keys($data));
         $marks = implode(', ', array_fill(0, count($data), '?'));
         try {
@@ -181,7 +199,10 @@ abstract class BaseModel implements \JsonSerializable
         } catch (PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
-        return static::findById($id);
+
+        $model = static::findById($id);
+        static::fireObserverEvent('created', $model);
+        return $model;
     }
 
     /** Обновить запись по ID непустыми полями из массива (фильтруется по $fillable).
@@ -202,6 +223,15 @@ abstract class BaseModel implements \JsonSerializable
             return static::findById($id);
         }
 
+        $model = static::findById($id);
+        if ($model === null) {
+            return null;
+        }
+
+        if (static::fireObserverEvent('updating', $model, $data) === false) {
+            return $model;
+        }
+
         $set    = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
         $values = [...array_values($data), $id];
         try {
@@ -209,6 +239,10 @@ abstract class BaseModel implements \JsonSerializable
         } catch (PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
-        return static::findById($id);
+
+        $updated       = static::findById($id);
+        $changedFields = array_keys($data);
+        static::fireObserverEvent('updated', $updated, $changedFields);
+        return $updated;
     }
 }

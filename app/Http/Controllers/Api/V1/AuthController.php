@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1;
 
 use Random\RandomException;
-use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
 use App\Actions\Auth\LoginAction;
 use App\Actions\Auth\LogoutAction;
@@ -27,12 +26,11 @@ class AuthController
 
     /** Выход пользователя.
      * @param LogoutAction $action
-     * @param Request      $req
      * @return Response
      */
-    public function logout(LogoutAction $action, Request $req): Response
+    public function logout(LogoutAction $action): Response
     {
-        $action->run($req);
+        $action->run();
         return success(['message' => 'Logged out successfully.']);
     }
 }

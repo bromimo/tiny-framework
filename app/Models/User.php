@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\DTOs\UserDto;
 use App\Abstracts\BaseModel;
+use App\Attributes\ObservedBy;
+use App\Observers\UserObserver;
 use App\Exceptions\QueryException;
 
 /** Модель таблицы `users`. */
+#[ObservedBy(UserObserver::class)]
 class User extends BaseModel
 {
     protected static string $table    = 'users';
@@ -24,10 +27,10 @@ class User extends BaseModel
 
     /** Создать нового пользователя из DTO.
      * @param UserDto $dto
-     * @return static Созданная запись пользователя.
+     * @return static|null Созданная запись, или null если обсервер отменил.
      * @throws QueryException При ошибке запроса (например, дублирование email — SQLSTATE 23000).
      */
-    public static function create(UserDto $dto): static
+    public static function create(UserDto $dto): ?static
     {
         return static::insert([
             'first_name' => $dto->first_name,
