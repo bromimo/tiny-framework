@@ -17,8 +17,8 @@ class UpdateUserRequest extends BaseRequest
         return [
             'first_name' => ['max:100'],
             'last_name'  => ['max:100'],
-            'email'    => ['email'],
-            'password' => ['min:8'],
+            'email'    => ['email', 'unique:users'],
+            'password' => ['min:8', 'confirmed'],
         ];
     }
 

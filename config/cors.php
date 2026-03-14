@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'allowed_origins' => env('CORS_ALLOWED_ORIGINS', '*'),
+    'allowed_origins' => env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000'),
     'allowed_methods' => 'GET, POST, PUT, DELETE, OPTIONS',
     'allowed_headers' => 'Content-Type, Authorization, X-Request-Id',
     'max_age'         => 86400,
