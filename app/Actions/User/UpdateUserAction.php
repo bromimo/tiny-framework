@@ -4,9 +4,7 @@ namespace App\Actions\User;
 
 use App\DTOs\UserDto;
 use App\Models\User;
-use App\Facades\Event;
 use App\Abstracts\BaseAction;
-use App\Events\UserUpdated;
 use App\Exceptions\QueryException;
 use App\Exceptions\ValidationException;
 
@@ -27,9 +25,6 @@ class UpdateUserAction extends BaseAction
             throw new ValidationException(['body' => 'No fields provided for update.']);
         }
 
-        $updated = User::update($user->id, $dto);
-        $changed = array_keys(array_filter($dto->toArray(), fn($v) => $v !== null && $v !== ''));
-        Event::dispatch(new UserUpdated($user->id, $changed));
-        return $updated;
+        return User::update($user->id, $dto);
     }
 }
