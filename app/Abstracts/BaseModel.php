@@ -5,8 +5,10 @@ namespace App\Abstracts;
 use LogicException;
 use PDOException;
 use TinyRouter\Http\Request;
+use App\Core\QueryBuilder;
 use App\Traits\HasObserver;
 use App\Exceptions\QueryException;
+use App\Core\ModelQueryBuilder;
 
 /** Базовый класс для всех моделей.
  * Предоставляет стандартные CRUD-операции через хелперы q(), q1(), qi().
@@ -71,6 +73,29 @@ abstract class BaseModel implements \JsonSerializable
     public static function hasSoftDelete(): bool
     {
         return static::$softDelete;
+    }
+
+    /** Создать ModelQueryBuilder для текущей модели.
+     * @return ModelQueryBuilder
+     */
+    public static function query(): ModelQueryBuilder
+    {
+        return new ModelQueryBuilder(static::class);
+    }
+
+    /** Делегировать вызовы fluent-методов в query().
+     * @param string       $method Имя метода.
+     * @param array<mixed> $args   Аргументы.
+     * @return mixed
+     * @throws \BadMethodCallException Если метод не найден в билдере.
+     */
+    public static function __callStatic(string $method, array $args): mixed
+    {
+        $allowed = ['where', 'whereNull', 'whereNotNull', 'whereIn', 'orderBy', 'limit', 'offset'];
+        if (!in_array($method, $allowed, true)) {
+            throw new \BadMethodCallException("Method {$method} does not exist on " . static::class);
+        }
+        return static::query()->{$method}(...$args);
     }
 
     /** Найти одну запись по первичному ключу.
