@@ -104,9 +104,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function findById(int $id): ?static
     {
-        $filter = static::$softDelete ? ' AND deleted_at IS NULL' : '';
-        $data   = q1('SELECT * FROM ' . static::$table . ' WHERE id = ?' . $filter, [$id]);
-        return $data ? new static($data) : null;
+        return static::query()->where('id', $id)->first();
     }
 
     /** Найти одну запись по произвольному полю.
@@ -117,9 +115,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function findByField(string $field, mixed $value): ?static
     {
-        $filter = static::$softDelete ? ' AND deleted_at IS NULL' : '';
-        $data   = q1('SELECT * FROM ' . static::$table . ' WHERE ' . $field . ' = ?' . $filter, [$value]);
-        return $data ? new static($data) : null;
+        return static::query()->where($field, $value)->first();
     }
 
     /** Вернуть все записи таблицы. Исключает мягко удалённые если $softDelete = true.
@@ -127,8 +123,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function findAll(): array
     {
-        $where = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
-        return array_map(fn(array $row) => new static($row), q('SELECT * FROM ' . static::$table . $where));
+        return static::query()->get();
     }
 
     /** Удалить запись по первичному ключу.
@@ -185,10 +180,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function withTrashed(): array
     {
-        if (!static::$softDelete) {
-            return static::findAll();
-        }
-        return array_map(fn(array $row) => new static($row), q('SELECT * FROM ' . static::$table));
+        return static::query()->withTrashed()->get();
     }
 
     /** Вернуть постраничный результат.
@@ -200,24 +192,7 @@ abstract class BaseModel implements \JsonSerializable
     {
         $page    = max(1, (int) ($request->query['page'] ?? 1));
         $perPage = max(1, min(100, (int) ($request->query['per_page'] ?? 15)));
-        $offset  = ($page - 1) * $perPage;
-
-        $where    = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
-        $total    = (int) (q1('SELECT COUNT(*) AS count FROM ' . static::$table . $where)['count'] ?? 0);
-        $lastPage = max(1, (int) ceil($total / $perPage));
-        // LIMIT/OFFSET вставляются как числа напрямую — PDO MySQL отвергает bound-параметры в LIMIT/OFFSET (трактует как строки).
-        // Значения гарантированно целые и зажаты через max()/min(), поэтому SQL-инъекция невозможна.
-        $rows     = q('SELECT * FROM ' . static::$table . $where . " LIMIT {$perPage} OFFSET {$offset}");
-
-        return [
-            'data' => array_map(fn(array $row) => new static($row), $rows),
-            'meta' => [
-                'total'        => $total,
-                'per_page'     => $perPage,
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-            ],
-        ];
+        return static::query()->paginate($page, $perPage);
     }
 
     /** Вставить новую запись из массива данных (фильтруется по $fillable).
