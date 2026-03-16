@@ -3,15 +3,14 @@
 namespace App\Abstracts;
 
 use LogicException;
-use PDOException;
 use TinyRouter\Http\Request;
 use App\Core\QueryBuilder;
 use App\Traits\HasObserver;
-use App\Exceptions\QueryException;
 use App\Core\ModelQueryBuilder;
+use App\Exceptions\QueryException;
 
 /** Базовый класс для всех моделей.
- * Предоставляет стандартные CRUD-операции через хелперы q(), q1(), qi().
+ * Предоставляет стандартные CRUD-операции через QueryBuilder.
  * Подклассы обязаны переопределить свойство {@see $table}.
  */
 abstract class BaseModel implements \JsonSerializable
