@@ -57,6 +57,22 @@ abstract class BaseModel implements \JsonSerializable
             : $this->attributes;
     }
 
+    /** Вернуть имя таблицы модели.
+     * @return string
+     */
+    public static function getTable(): string
+    {
+        return static::$table;
+    }
+
+    /** Проверить, включено ли мягкое удаление.
+     * @return bool
+     */
+    public static function hasSoftDelete(): bool
+    {
+        return static::$softDelete;
+    }
+
     /** Найти одну запись по первичному ключу.
      * @param int $id ID записи.
      * @return static|null Null если запись не найдена или мягко удалена.

@@ -129,7 +129,7 @@ class QueryBuilder
     /** Выполнить SELECT и вернуть все строки.
      * @return array<int, array<string, mixed>>
      */
-    public function get(): array
+    public function get(): mixed
     {
         ['sql' => $sql, 'params' => $params] = $this->compileSelect();
         return q($sql, $params);
@@ -138,7 +138,7 @@ class QueryBuilder
     /** Выполнить SELECT и вернуть первую строку.
      * @return array<string, mixed>|null
      */
-    public function first(): ?array
+    public function first(): mixed
     {
         $saved = $this->limitValue;
         $this->limitValue = 1;
