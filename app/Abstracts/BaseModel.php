@@ -3,13 +3,14 @@
 namespace App\Abstracts;
 
 use LogicException;
-use PDOException;
 use TinyRouter\Http\Request;
+use App\Core\QueryBuilder;
 use App\Traits\HasObserver;
+use App\Core\ModelQueryBuilder;
 use App\Exceptions\QueryException;
 
 /** Базовый класс для всех моделей.
- * Предоставляет стандартные CRUD-операции через хелперы q(), q1(), qi().
+ * Предоставляет стандартные CRUD-операции через QueryBuilder.
  * Подклассы обязаны переопределить свойство {@see $table}.
  */
 abstract class BaseModel implements \JsonSerializable
@@ -57,15 +58,52 @@ abstract class BaseModel implements \JsonSerializable
             : $this->attributes;
     }
 
+    /** Вернуть имя таблицы модели.
+     * @return string
+     */
+    public static function getTable(): string
+    {
+        return static::$table;
+    }
+
+    /** Проверить, включено ли мягкое удаление.
+     * @return bool
+     */
+    public static function hasSoftDelete(): bool
+    {
+        return static::$softDelete;
+    }
+
+    /** Создать ModelQueryBuilder для текущей модели.
+     * @return ModelQueryBuilder
+     */
+    public static function query(): ModelQueryBuilder
+    {
+        return new ModelQueryBuilder(static::class);
+    }
+
+    /** Делегировать вызовы fluent-методов в query().
+     * @param string       $method Имя метода.
+     * @param array<mixed> $args   Аргументы.
+     * @return mixed
+     * @throws \BadMethodCallException Если метод не найден в билдере.
+     */
+    public static function __callStatic(string $method, array $args): mixed
+    {
+        $allowed = ['where', 'whereNull', 'whereNotNull', 'whereIn', 'orderBy', 'limit', 'offset'];
+        if (!in_array($method, $allowed, true)) {
+            throw new \BadMethodCallException("Method {$method} does not exist on " . static::class);
+        }
+        return static::query()->{$method}(...$args);
+    }
+
     /** Найти одну запись по первичному ключу.
      * @param int $id ID записи.
      * @return static|null Null если запись не найдена или мягко удалена.
      */
     public static function findById(int $id): ?static
     {
-        $filter = static::$softDelete ? ' AND deleted_at IS NULL' : '';
-        $data   = q1('SELECT * FROM ' . static::$table . ' WHERE id = ?' . $filter, [$id]);
-        return $data ? new static($data) : null;
+        return static::query()->where('id', $id)->first();
     }
 
     /** Найти одну запись по произвольному полю.
@@ -76,9 +114,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function findByField(string $field, mixed $value): ?static
     {
-        $filter = static::$softDelete ? ' AND deleted_at IS NULL' : '';
-        $data   = q1('SELECT * FROM ' . static::$table . ' WHERE ' . $field . ' = ?' . $filter, [$value]);
-        return $data ? new static($data) : null;
+        return static::query()->where($field, $value)->first();
     }
 
     /** Вернуть все записи таблицы. Исключает мягко удалённые если $softDelete = true.
@@ -86,8 +122,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function findAll(): array
     {
-        $where = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
-        return array_map(fn(array $row) => new static($row), q('SELECT * FROM ' . static::$table . $where));
+        return static::query()->get();
     }
 
     /** Удалить запись по первичному ключу.
@@ -103,9 +138,9 @@ abstract class BaseModel implements \JsonSerializable
         }
 
         if (static::$softDelete) {
-            $result = qi('UPDATE ' . static::$table . ' SET deleted_at = NOW() WHERE id = ?', [$id]) > 0;
+            $result = (new QueryBuilder(static::$table))->where('id', $id)->update(['deleted_at' => date('Y-m-d H:i:s')]) > 0;
         } else {
-            $result = qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]) > 0;
+            $result = (new QueryBuilder(static::$table))->where('id', $id)->delete() > 0;
         }
 
         if ($result) {
@@ -125,7 +160,7 @@ abstract class BaseModel implements \JsonSerializable
         if (!static::$softDelete) {
             throw new LogicException('restore() called on model without soft delete enabled');
         }
-        qi('UPDATE ' . static::$table . ' SET deleted_at = NULL WHERE id = ?', [$id]);
+        (new QueryBuilder(static::$table))->where('id', $id)->update(['deleted_at' => null]);
     }
 
     /** Жёстко удалить запись независимо от настройки мягкого удаления.
@@ -135,7 +170,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function forceDelete(int $id): void
     {
-        qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]);
+        (new QueryBuilder(static::$table))->where('id', $id)->delete();
     }
 
     /** Вернуть все записи, включая мягко удалённые.
@@ -144,10 +179,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function withTrashed(): array
     {
-        if (!static::$softDelete) {
-            return static::findAll();
-        }
-        return array_map(fn(array $row) => new static($row), q('SELECT * FROM ' . static::$table));
+        return static::query()->withTrashed()->get();
     }
 
     /** Вернуть постраничный результат.
@@ -159,24 +191,7 @@ abstract class BaseModel implements \JsonSerializable
     {
         $page    = max(1, (int) ($request->query['page'] ?? 1));
         $perPage = max(1, min(100, (int) ($request->query['per_page'] ?? 15)));
-        $offset  = ($page - 1) * $perPage;
-
-        $where    = static::$softDelete ? ' WHERE deleted_at IS NULL' : '';
-        $total    = (int) (q1('SELECT COUNT(*) AS count FROM ' . static::$table . $where)['count'] ?? 0);
-        $lastPage = max(1, (int) ceil($total / $perPage));
-        // LIMIT/OFFSET вставляются как числа напрямую — PDO MySQL отвергает bound-параметры в LIMIT/OFFSET (трактует как строки).
-        // Значения гарантированно целые и зажаты через max()/min(), поэтому SQL-инъекция невозможна.
-        $rows     = q('SELECT * FROM ' . static::$table . $where . " LIMIT {$perPage} OFFSET {$offset}");
-
-        return [
-            'data' => array_map(fn(array $row) => new static($row), $rows),
-            'meta' => [
-                'total'        => $total,
-                'per_page'     => $perPage,
-                'current_page' => $page,
-                'last_page'    => $lastPage,
-            ],
-        ];
+        return static::query()->paginate($page, $perPage);
     }
 
     /** Вставить новую запись из массива данных (фильтруется по $fillable).
@@ -192,11 +207,9 @@ abstract class BaseModel implements \JsonSerializable
             return null;
         }
 
-        $cols  = implode(', ', array_keys($data));
-        $marks = implode(', ', array_fill(0, count($data), '?'));
         try {
-            $id = qi('INSERT INTO ' . static::$table . " ({$cols}) VALUES ({$marks})", array_values($data));
-        } catch (PDOException $e) {
+            $id = (new QueryBuilder(static::$table))->insert($data);
+        } catch (\PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
 
@@ -232,11 +245,9 @@ abstract class BaseModel implements \JsonSerializable
             return $model;
         }
 
-        $set    = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
-        $values = [...array_values($data), $id];
         try {
-            qi('UPDATE ' . static::$table . " SET {$set} WHERE id = ?", $values);
-        } catch (PDOException $e) {
+            (new QueryBuilder(static::$table))->where('id', $id)->update($data);
+        } catch (\PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
 

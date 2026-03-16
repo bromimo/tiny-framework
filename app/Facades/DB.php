@@ -3,6 +3,7 @@
 namespace App\Facades;
 
 use App\Core\SQL;
+use App\Core\QueryBuilder;
 
 /** Статический фасад над классом SQL.
  * Хранит единственный экземпляр SQL и проксирует вызовы к нему.
@@ -61,6 +62,15 @@ class DB
     public static function transaction(callable $callback): mixed
     {
         return self::instance()->transaction($callback);
+    }
+
+    /** Создать QueryBuilder для указанной таблицы.
+     * @param string $table Имя таблицы.
+     * @return QueryBuilder
+     */
+    public static function table(string $table): QueryBuilder
+    {
+        return new QueryBuilder($table);
     }
 
     /** Сбросить экземпляр SQL. Используется в тестах для пересоздания соединения. */
