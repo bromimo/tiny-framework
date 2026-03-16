@@ -138,4 +138,45 @@ class QueryBuilderTest extends TestCase
         $this->assertSame('SELECT * FROM users WHERE active = ? ORDER BY name ASC LIMIT 10 OFFSET 0', $result['sql']);
         $this->assertSame([1], $result['params']);
     }
+
+    /** toInsertSql строит INSERT INTO table (cols) VALUES (?). */
+    public function testToInsertSql(): void
+    {
+        $result = (new QueryBuilder('users'))->toInsertSql(['name' => 'John', 'email' => 'john@example.com']);
+
+        $this->assertSame('INSERT INTO users (name, email) VALUES (?, ?)', $result['sql']);
+        $this->assertSame(['John', 'john@example.com'], $result['params']);
+    }
+
+    /** toUpdateSql строит UPDATE table SET col = ? WHERE id = ?. */
+    public function testToUpdateSql(): void
+    {
+        $result = (new QueryBuilder('users'))->where('id', 1)->toUpdateSql(['name' => 'Jane']);
+
+        $this->assertSame('UPDATE users SET name = ? WHERE id = ?', $result['sql']);
+        $this->assertSame(['Jane', 1], $result['params']);
+    }
+
+    /** toDeleteSql строит DELETE FROM table WHERE id = ?. */
+    public function testToDeleteSql(): void
+    {
+        $result = (new QueryBuilder('users'))->where('id', 1)->toDeleteSql();
+
+        $this->assertSame('DELETE FROM users WHERE id = ?', $result['sql']);
+        $this->assertSame([1], $result['params']);
+    }
+
+    /** Update без WHERE бросает LogicException. */
+    public function testUpdateWithoutWhereThrows(): void
+    {
+        $this->expectException(\LogicException::class);
+        (new QueryBuilder('users'))->toUpdateSql(['name' => 'Jane']);
+    }
+
+    /** Delete без WHERE бросает LogicException. */
+    public function testDeleteWithoutWhereThrows(): void
+    {
+        $this->expectException(\LogicException::class);
+        (new QueryBuilder('users'))->toDeleteSql();
+    }
 }

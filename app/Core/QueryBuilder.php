@@ -191,4 +191,87 @@ class QueryBuilder
         }
         return $sql;
     }
+
+    /** Вернуть сгенерированный INSERT SQL и параметры.
+     * @param array<string, mixed> $data Колонка => значение.
+     * @return array{sql: string, params: array<mixed>}
+     */
+    public function toInsertSql(array $data): array
+    {
+        return $this->compileInsert($data);
+    }
+
+    /** Вернуть сгенерированный UPDATE SQL и параметры.
+     * @param array<string, mixed> $data Колонка => значение.
+     * @return array{sql: string, params: array<mixed>}
+     * @throws \LogicException Если не задано ни одного WHERE-условия.
+     */
+    public function toUpdateSql(array $data): array
+    {
+        return $this->compileUpdate($data);
+    }
+
+    /** Вернуть сгенерированный DELETE SQL и параметры.
+     * @return array{sql: string, params: array<mixed>}
+     * @throws \LogicException Если не задано ни одного WHERE-условия.
+     */
+    public function toDeleteSql(): array
+    {
+        return $this->compileDelete();
+    }
+
+    /** Скомпилировать INSERT-запрос.
+     * @param array<string, mixed> $data
+     * @return array{sql: string, params: array<mixed>}
+     */
+    protected function compileInsert(array $data): array
+    {
+        $cols  = implode(', ', array_keys($data));
+        $marks = implode(', ', array_fill(0, count($data), '?'));
+
+        return ['sql' => "INSERT INTO {$this->table} ({$cols}) VALUES ({$marks})", 'params' => array_values($data)];
+    }
+
+    /** Скомпилировать UPDATE-запрос.
+     * @param array<string, mixed> $data
+     * @return array{sql: string, params: array<mixed>}
+     * @throws \LogicException
+     */
+    protected function compileUpdate(array $data): array
+    {
+        $this->guardAgainstMassOperation('update');
+
+        $params = array_values($data);
+        $set    = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
+        $sql    = "UPDATE {$this->table} SET {$set}";
+        $sql   .= $this->compileWheres($params);
+
+        return ['sql' => $sql, 'params' => $params];
+    }
+
+    /** Скомпилировать DELETE-запрос.
+     * @return array{sql: string, params: array<mixed>}
+     * @throws \LogicException
+     */
+    protected function compileDelete(): array
+    {
+        $this->guardAgainstMassOperation('delete');
+
+        $params = [];
+        $sql    = "DELETE FROM {$this->table}";
+        $sql   .= $this->compileWheres($params);
+
+        return ['sql' => $sql, 'params' => $params];
+    }
+
+    /** Защита от массовых операций без WHERE.
+     * @param string $operation Название операции.
+     * @throws \LogicException
+     */
+    private function guardAgainstMassOperation(string $operation): void
+    {
+        if (empty($this->wheres)) {
+            throw new \LogicException("Cannot {$operation} without WHERE clause.");
+        }
+    }
 }
