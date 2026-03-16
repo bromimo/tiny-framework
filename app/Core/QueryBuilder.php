@@ -79,6 +79,37 @@ class QueryBuilder
         return $this;
     }
 
+    /** Добавить ORDER BY.
+     * @param string $column    Имя колонки.
+     * @param string $direction 'ASC' или 'DESC'.
+     * @return static
+     */
+    public function orderBy(string $column, string $direction = 'ASC'): static
+    {
+        $this->orders[] = ['column' => $column, 'direction' => strtoupper($direction)];
+        return $this;
+    }
+
+    /** Установить LIMIT.
+     * @param int $limit Максимальное количество строк.
+     * @return static
+     */
+    public function limit(int $limit): static
+    {
+        $this->limitValue = $limit;
+        return $this;
+    }
+
+    /** Установить OFFSET.
+     * @param int $offset Смещение.
+     * @return static
+     */
+    public function offset(int $offset): static
+    {
+        $this->offsetValue = $offset;
+        return $this;
+    }
+
     /** Вернуть сгенерированный SELECT SQL и параметры.
      * @return array{sql: string, params: array<mixed>}
      */

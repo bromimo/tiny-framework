@@ -100,4 +100,42 @@ class QueryBuilderTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         (new QueryBuilder('users'))->whereIn('id', []);
     }
+
+    /** OrderBy строит ORDER BY col ASC. */
+    public function testOrderByDefault(): void
+    {
+        $result = (new QueryBuilder('users'))->orderBy('name')->toSql();
+        $this->assertSame('SELECT * FROM users ORDER BY name ASC', $result['sql']);
+    }
+
+    /** OrderBy DESC. */
+    public function testOrderByDesc(): void
+    {
+        $result = (new QueryBuilder('users'))->orderBy('name', 'DESC')->toSql();
+        $this->assertSame('SELECT * FROM users ORDER BY name DESC', $result['sql']);
+    }
+
+    /** Множественные orderBy. */
+    public function testMultipleOrderBy(): void
+    {
+        $result = (new QueryBuilder('users'))->orderBy('last_name')->orderBy('first_name', 'DESC')->toSql();
+        $this->assertSame('SELECT * FROM users ORDER BY last_name ASC, first_name DESC', $result['sql']);
+    }
+
+    /** Limit и offset. */
+    public function testLimitOffset(): void
+    {
+        $result = (new QueryBuilder('users'))->limit(10)->offset(5)->toSql();
+        $this->assertSame('SELECT * FROM users LIMIT 10 OFFSET 5', $result['sql']);
+    }
+
+    /** Полная цепочка: where + order + limit. */
+    public function testFullChain(): void
+    {
+        $result = (new QueryBuilder('users'))
+            ->where('active', 1)->orderBy('name')->limit(10)->offset(0)->toSql();
+
+        $this->assertSame('SELECT * FROM users WHERE active = ? ORDER BY name ASC LIMIT 10 OFFSET 0', $result['sql']);
+        $this->assertSame([1], $result['params']);
+    }
 }
