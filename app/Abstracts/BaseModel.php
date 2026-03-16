@@ -139,9 +139,9 @@ abstract class BaseModel implements \JsonSerializable
         }
 
         if (static::$softDelete) {
-            $result = qi('UPDATE ' . static::$table . ' SET deleted_at = NOW() WHERE id = ?', [$id]) > 0;
+            $result = (new QueryBuilder(static::$table))->where('id', $id)->update(['deleted_at' => date('Y-m-d H:i:s')]) > 0;
         } else {
-            $result = qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]) > 0;
+            $result = (new QueryBuilder(static::$table))->where('id', $id)->delete() > 0;
         }
 
         if ($result) {
@@ -161,7 +161,7 @@ abstract class BaseModel implements \JsonSerializable
         if (!static::$softDelete) {
             throw new LogicException('restore() called on model without soft delete enabled');
         }
-        qi('UPDATE ' . static::$table . ' SET deleted_at = NULL WHERE id = ?', [$id]);
+        (new QueryBuilder(static::$table))->where('id', $id)->update(['deleted_at' => null]);
     }
 
     /** Жёстко удалить запись независимо от настройки мягкого удаления.
@@ -171,7 +171,7 @@ abstract class BaseModel implements \JsonSerializable
      */
     public static function forceDelete(int $id): void
     {
-        qi('DELETE FROM ' . static::$table . ' WHERE id = ?', [$id]);
+        (new QueryBuilder(static::$table))->where('id', $id)->delete();
     }
 
     /** Вернуть все записи, включая мягко удалённые.
@@ -208,11 +208,9 @@ abstract class BaseModel implements \JsonSerializable
             return null;
         }
 
-        $cols  = implode(', ', array_keys($data));
-        $marks = implode(', ', array_fill(0, count($data), '?'));
         try {
-            $id = qi('INSERT INTO ' . static::$table . " ({$cols}) VALUES ({$marks})", array_values($data));
-        } catch (PDOException $e) {
+            $id = (new QueryBuilder(static::$table))->insert($data);
+        } catch (\PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
 
@@ -248,11 +246,9 @@ abstract class BaseModel implements \JsonSerializable
             return $model;
         }
 
-        $set    = implode(', ', array_map(fn($col) => "{$col} = ?", array_keys($data)));
-        $values = [...array_values($data), $id];
         try {
-            qi('UPDATE ' . static::$table . " SET {$set} WHERE id = ?", $values);
-        } catch (PDOException $e) {
+            (new QueryBuilder(static::$table))->where('id', $id)->update($data);
+        } catch (\PDOException $e) {
             throw new QueryException($e->getMessage(), (string) $e->getCode(), $e);
         }
 
