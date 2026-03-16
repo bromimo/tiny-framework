@@ -1,11 +1,11 @@
 {
     "name": "proj1/tiny-api",
-    "description": "Simple REST API",
+"description": "Simple REST API",
     "version": "1.0.0",
     "type": "project",
     "require": {
         "php": "^8.2",
-        "bromimo/tiny-router": "^1.0",
+        "bromimo/tiny-router": "^1.4",
         "vlucas/phpdotenv": "^5.6",
       "ext-pdo": "*",
       "ext-memcached": "*"

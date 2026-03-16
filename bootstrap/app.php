@@ -83,6 +83,9 @@ if (str_contains($contentType, 'application/json')) {
     $body = $body ?? [];
 } else {
     $body = $_POST;
+    if (empty($body) && in_array($method, [Method::PUT, Method::PATCH, Method::DELETE], true)) {
+        parse_str(file_get_contents('php://input'), $body);
+    }
 }
 $request = new Request($method, $path, $_GET, $body, $headers);
 $requestId = $_SERVER['HTTP_X_REQUEST_ID'] ?? generateUuid();
