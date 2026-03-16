@@ -118,6 +118,106 @@ class QueryBuilder
         return $this->compileSelect();
     }
 
+    /** Вернуть сгенерированный COUNT SQL и параметры.
+     * @return array{sql: string, params: array<mixed>}
+     */
+    public function toCountSql(): array
+    {
+        return $this->compileCount();
+    }
+
+    /** Выполнить SELECT и вернуть все строки.
+     * @return array<int, array<string, mixed>>
+     */
+    public function get(): array
+    {
+        ['sql' => $sql, 'params' => $params] = $this->compileSelect();
+        return q($sql, $params);
+    }
+
+    /** Выполнить SELECT и вернуть первую строку.
+     * @return array<string, mixed>|null
+     */
+    public function first(): ?array
+    {
+        $saved = $this->limitValue;
+        $this->limitValue = 1;
+        ['sql' => $sql, 'params' => $params] = $this->compileSelect();
+        $this->limitValue = $saved;
+        return q1($sql, $params);
+    }
+
+    /** Выполнить SELECT COUNT(*) и вернуть количество.
+     * @return int
+     */
+    public function count(): int
+    {
+        ['sql' => $sql, 'params' => $params] = $this->compileCount();
+        return (int) (q1($sql, $params)['count'] ?? 0);
+    }
+
+    /** Выполнить постраничный запрос.
+     * @param int $page    Номер страницы (минимум 1).
+     * @param int $perPage Записей на страницу (1–100).
+     * @return array{data: array<int, array<string, mixed>>, meta: array{total: int, per_page: int, current_page: int, last_page: int}}
+     */
+    public function paginate(int $page = 1, int $perPage = 15): array
+    {
+        $page    = max(1, $page);
+        $perPage = max(1, min(100, $perPage));
+
+        $total    = $this->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $offset   = ($page - 1) * $perPage;
+
+        $params = [];
+        $sql    = "SELECT * FROM {$this->table}";
+        $sql   .= $this->compileWheres($params);
+        $sql   .= $this->compileOrders();
+        $sql   .= " LIMIT {$perPage} OFFSET {$offset}";
+
+        return [
+            'data' => q($sql, $params),
+            'meta' => [
+                'total'        => $total,
+                'per_page'     => $perPage,
+                'current_page' => $page,
+                'last_page'    => $lastPage,
+            ],
+        ];
+    }
+
+    /** Вставить запись. Возвращает lastInsertId.
+     * @param array<string, mixed> $data Колонка => значение.
+     * @return int
+     */
+    public function insert(array $data): int
+    {
+        ['sql' => $sql, 'params' => $params] = $this->compileInsert($data);
+        return qi($sql, $params);
+    }
+
+    /** Обновить записи по текущим WHERE-условиям.
+     * @param array<string, mixed> $data Колонка => значение.
+     * @return int Количество затронутых строк.
+     * @throws \LogicException Если не задано ни одного WHERE-условия.
+     */
+    public function update(array $data): int
+    {
+        ['sql' => $sql, 'params' => $params] = $this->compileUpdate($data);
+        return qi($sql, $params);
+    }
+
+    /** Удалить записи по текущим WHERE-условиям.
+     * @return int Количество затронутых строк.
+     * @throws \LogicException Если не задано ни одного WHERE-условия.
+     */
+    public function delete(): int
+    {
+        ['sql' => $sql, 'params' => $params] = $this->compileDelete();
+        return qi($sql, $params);
+    }
+
     /** Скомпилировать SELECT-запрос.
      * @return array{sql: string, params: array<mixed>}
      */
@@ -128,6 +228,18 @@ class QueryBuilder
         $sql   .= $this->compileWheres($params);
         $sql   .= $this->compileOrders();
         $sql   .= $this->compileLimit();
+
+        return ['sql' => $sql, 'params' => $params];
+    }
+
+    /** Скомпилировать SELECT COUNT(*)-запрос (без ORDER BY и LIMIT).
+     * @return array{sql: string, params: array<mixed>}
+     */
+    protected function compileCount(): array
+    {
+        $params = [];
+        $sql    = "SELECT COUNT(*) AS count FROM {$this->table}";
+        $sql   .= $this->compileWheres($params);
 
         return ['sql' => $sql, 'params' => $params];
     }

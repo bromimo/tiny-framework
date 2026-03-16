@@ -179,4 +179,51 @@ class QueryBuilderTest extends TestCase
         $this->expectException(\LogicException::class);
         (new QueryBuilder('users'))->toDeleteSql();
     }
+
+    /** Count строит SELECT COUNT(*) без ORDER BY и LIMIT. */
+    public function testCountSql(): void
+    {
+        $result = (new QueryBuilder('users'))
+            ->where('active', 1)->orderBy('name')->limit(10)->toCountSql();
+
+        $this->assertSame('SELECT COUNT(*) AS count FROM users WHERE active = ?', $result['sql']);
+        $this->assertSame([1], $result['params']);
+    }
+
+    /** Билдер переиспользуем: toSql() после toCountSql(). */
+    public function testReusability(): void
+    {
+        $qb = (new QueryBuilder('users'))->where('active', 1);
+
+        $count  = $qb->toCountSql();
+        $select = $qb->toSql();
+
+        $this->assertSame('SELECT COUNT(*) AS count FROM users WHERE active = ?', $count['sql']);
+        $this->assertSame('SELECT * FROM users WHERE active = ?', $select['sql']);
+        $this->assertSame([1], $count['params']);
+        $this->assertSame([1], $select['params']);
+    }
+
+    /** Paginate: count без ORDER BY/LIMIT, select сохраняет ORDER BY. */
+    public function testPaginateSqlShape(): void
+    {
+        $qb = (new QueryBuilder('users'))->where('active', 1)->orderBy('name');
+
+        $count = $qb->toCountSql();
+        $this->assertSame('SELECT COUNT(*) AS count FROM users WHERE active = ?', $count['sql']);
+        $this->assertStringNotContainsString('ORDER BY', $count['sql']);
+
+        $select = $qb->toSql();
+        $this->assertStringContainsString('ORDER BY name ASC', $select['sql']);
+        $this->assertStringNotContainsString('LIMIT', $select['sql']);
+    }
+
+    /** first() не уничтожает limit если он был установлен. */
+    public function testFirstPreservesLimit(): void
+    {
+        $qb = (new QueryBuilder('users'))->limit(5);
+
+        $before = $qb->toSql();
+        $this->assertStringContainsString('LIMIT 5', $before['sql']);
+    }
 }
