@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "48bd917147e9996790bdd9684344eb4b",
+    "content-hash": "22df1257a402b1ad1056a177e02b8e48",
     "packages": [
         {
             "name": "bromimo/tiny-router",
-            "version": "v1.2.4",
+            "version": "v1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bromimo/tiny_router_2.git",
-                "reference": "0434ba1581c4c2f9530f2dd6197a5a1452a67f23"
+                "reference": "f5893f87b59595a108b4166f6befa6eaa6a4bed2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bromimo/tiny_router_2/zipball/0434ba1581c4c2f9530f2dd6197a5a1452a67f23",
-                "reference": "0434ba1581c4c2f9530f2dd6197a5a1452a67f23",
+                "url": "https://api.github.com/repos/bromimo/tiny_router_2/zipball/f5893f87b59595a108b4166f6befa6eaa6a4bed2",
+                "reference": "f5893f87b59595a108b4166f6befa6eaa6a4bed2",
                 "shasum": ""
             },
             "require": {
@@ -32,16 +32,20 @@
                     "TinyRouter\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-4": {
+                    "TinyRouter\\Tests\\": "tests/"
+                }
+            },
             "license": [
                 "MIT"
             ],
             "description": "Miniature PHP 8.2 router library",
             "support": {
-                "issues": "https://github.com/bromimo/tiny_router_2/issues",
-                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.2.4"
+                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.4.0",
+                "issues": "https://github.com/bromimo/tiny_router_2/issues"
             },
-            "time": "2026-03-12T16:28:02+00:00"
+            "time": "2026-03-16T08:52:54+00:00"
         },
         {
             "name": "graham-campbell/result-type",

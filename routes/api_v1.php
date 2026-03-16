@@ -1,5 +1,6 @@
 <?php
 
+use TinyRouter\Http\Method;
 use TinyRouter\Facade\Route;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -14,7 +15,7 @@ Route::prefix('api/v1')->middleware('cors')->group(function () {
         Route::get('', [UserController::class, 'index'])->name('users.index');
         Route::get('{id}', [UserController::class, 'show']);
         Route::post('', [UserController::class, 'store']);
-        Route::put('{id}', [UserController::class, 'update']);
+        Route::match([Method::PUT, Method::PATCH],'{id}', [UserController::class, 'update']);
         Route::delete('{id}', [UserController::class, 'destroy']);
     });
 });
