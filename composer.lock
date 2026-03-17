@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22df1257a402b1ad1056a177e02b8e48",
+    "content-hash": "f49c00d7ff2111f45bcbb1cd11dbf81d",
     "packages": [
         {
             "name": "bromimo/tiny-router",
@@ -32,18 +32,14 @@
                     "TinyRouter\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "TinyRouter\\Tests\\": "tests/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
             "description": "Miniature PHP 8.2 router library",
             "support": {
-                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.4.0",
-                "issues": "https://github.com/bromimo/tiny_router_2/issues"
+                "issues": "https://github.com/bromimo/tiny_router_2/issues",
+                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.4.0"
             },
             "time": "2026-03-16T08:52:54+00:00"
         },
