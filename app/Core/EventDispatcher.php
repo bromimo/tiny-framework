@@ -32,16 +32,18 @@ class EventDispatcher
         }
 
         foreach ($this->listeners[$eventClass] as $listener) {
+            if (is_string($listener) && is_subclass_of($listener, ShouldQueue::class)) {
+                $bridge = new \App\Queue\CallQueuedListener($listener, $event);
+                \App\Facades\Queue::push($bridge);
+                continue;
+            }
+
             if (is_string($listener)) {
-                $instance = new $listener();
-                if ($instance instanceof ShouldQueue) {
-                    Logger::info('[queued:sync] ' . $listener);
-                }
-                $instance->__invoke($event);
+                (new $listener())->__invoke($event);
+            } elseif (is_object($listener) && $listener instanceof ShouldQueue) {
+                $bridge = new \App\Queue\CallQueuedListener(get_class($listener), $event);
+                \App\Facades\Queue::push($bridge);
             } else {
-                if (is_object($listener) && $listener instanceof ShouldQueue) {
-                    Logger::info('[queued:sync] ' . get_class($listener));
-                }
                 ($listener)($event);
             }
         }

@@ -93,6 +93,22 @@ class EventDispatcherTest extends TestCase
         $this->assertFalse($this->dispatcher->hasListeners(\stdClass::class));
         $this->assertTrue($this->dispatcher->hasListeners(StubEvent::class));
     }
+
+    public function test_dispatch_queues_should_queue_listener_instead_of_invoking(): void
+    {
+        \App\Facades\Queue::setInstance(new \App\Queue\QueueManager('sync'));
+
+        $this->dispatcher->listen(StubEvent::class, StubQueueableListener::class);
+        StubQueueableListener::$invoked = false;
+
+        $event = new StubEvent();
+        $this->dispatcher->dispatch($event);
+
+        // Через SyncDriver — listener выполняется сразу через CallQueuedListener
+        $this->assertTrue(StubQueueableListener::$invoked);
+
+        \App\Facades\Queue::reset();
+    }
 }
 
 class StubEvent
@@ -105,5 +121,15 @@ class StubListener
     public function __invoke(StubEvent $event): void
     {
         $event->handled = true;
+    }
+}
+
+class StubQueueableListener implements \App\Contracts\ShouldQueue
+{
+    public static bool $invoked = false;
+
+    public function __invoke(StubEvent $event): void
+    {
+        self::$invoked = true;
     }
 }
