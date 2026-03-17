@@ -6,6 +6,7 @@ use TinyRouter\Contract\MiddlewareInterface;
 use TinyRouter\Http\Method;
 use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
+use TinyRouter\Routing\MultiRouteDefinition;
 
 class Router
 {
@@ -64,6 +65,20 @@ class Router
     public function options(string $path, mixed $handler): RouteDefinition
     {
         return $this->addRoute(Method::OPTIONS, $path, $handler);
+    }
+
+    /**
+     * Register the same handler for multiple HTTP methods.
+     *
+     * @param Method[] $methods
+     */
+    public function match(array $methods, string $path, mixed $handler): MultiRouteDefinition
+    {
+        $definitions = [];
+        foreach ($methods as $method) {
+            $definitions[] = $this->addRoute($method, $path, $handler);
+        }
+        return new MultiRouteDefinition($definitions);
     }
 
     /**
@@ -278,12 +293,10 @@ class Router
             return $middleware;
         }
 
-        // Exact alias takes priority — checked before parameterized split to support aliases containing ':', e.g. 'auth:api'
         if (isset($this->middlewareAliases[$middleware])) {
             return new $this->middlewareAliases[$middleware]();
         }
 
-        // Parameterized alias — 'rate_limit:5,60'
         if (str_contains($middleware, ':')) {
             [$alias, $params] = explode(':', $middleware, 2);
             if (isset($this->middlewareFactories[$alias])) {
@@ -292,7 +305,6 @@ class Router
             throw new \InvalidArgumentException("No middleware factory registered for alias '{$alias}'.");
         }
 
-        // Bare class name fallback
         return new $middleware();
     }
 }

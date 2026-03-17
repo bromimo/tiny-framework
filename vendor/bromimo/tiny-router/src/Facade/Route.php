@@ -5,7 +5,9 @@ namespace TinyRouter\Facade;
 use TinyRouter\Contract\MiddlewareInterface;
 use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
+use TinyRouter\Http\Method;
 use TinyRouter\Routing\GroupDefinition;
+use TinyRouter\Routing\MultiRouteDefinition;
 use TinyRouter\Routing\PendingRouteGroup;
 use TinyRouter\Routing\RouteDefinition;
 use TinyRouter\Routing\Router;
@@ -57,6 +59,16 @@ final class Route
         return self::getInstance()->options($path, $handler);
     }
 
+    /**
+     * Register the same handler for multiple HTTP methods.
+     *
+     * @param Method[] $methods
+     */
+    public static function match(array $methods, string $path, mixed $handler): MultiRouteDefinition
+    {
+        return self::getInstance()->match($methods, $path, $handler);
+    }
+
     public static function prefix(string $prefix): PendingRouteGroup
     {
         return new PendingRouteGroup(self::getInstance(), $prefix);
@@ -77,6 +89,10 @@ final class Route
         self::getInstance()->addMiddlewareAlias($alias, $class);
     }
 
+    /** Зарегистрировать фабрику параметризованного middleware.
+     * @param string                                                     $alias   Базовый алиас, напр. 'rate_limit'.
+     * @param callable(string): \TinyRouter\Contract\MiddlewareInterface $factory Получает строку параметров.
+     */
     public static function addMiddlewareFactory(string $alias, callable $factory): void
     {
         self::getInstance()->addMiddlewareFactory($alias, $factory);
