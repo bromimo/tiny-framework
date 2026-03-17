@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "bromimo/tiny-router",
-            "version": "v1.4.0",
+            "version": "v1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bromimo/tiny_router_2.git",
-                "reference": "f5893f87b59595a108b4166f6befa6eaa6a4bed2"
+                "reference": "148f429117910148606a7137ab89758044cbc149"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bromimo/tiny_router_2/zipball/f5893f87b59595a108b4166f6befa6eaa6a4bed2",
-                "reference": "f5893f87b59595a108b4166f6befa6eaa6a4bed2",
+                "url": "https://api.github.com/repos/bromimo/tiny_router_2/zipball/148f429117910148606a7137ab89758044cbc149",
+                "reference": "148f429117910148606a7137ab89758044cbc149",
                 "shasum": ""
             },
             "require": {
@@ -39,9 +39,9 @@
             "description": "Miniature PHP 8.2 router library",
             "support": {
                 "issues": "https://github.com/bromimo/tiny_router_2/issues",
-                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.4.0"
+                "source": "https://github.com/bromimo/tiny_router_2/tree/v1.4.1"
             },
-            "time": "2026-03-16T08:52:54+00:00"
+            "time": "2026-03-17T14:53:01+00:00"
         },
         {
             "name": "graham-campbell/result-type",
