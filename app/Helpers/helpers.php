@@ -190,3 +190,18 @@ if (!function_exists('created')) {
         return \App\Facades\ApiResponse::created($data);
     }
 }
+
+if (!function_exists('dispatch')) {
+    /** Поставить задачу в очередь.
+     * @param \App\Abstracts\Job $job   Задача для выполнения.
+     * @param int                $delay Задержка в секундах перед выполнением.
+     */
+    function dispatch(\App\Abstracts\Job $job, int $delay = 0): void
+    {
+        if ($delay > 0) {
+            \App\Facades\Queue::later($delay, $job);
+        } else {
+            \App\Facades\Queue::push($job);
+        }
+    }
+}

@@ -25,6 +25,9 @@ $dispatcher = new \App\Core\EventDispatcher();
 \App\Facades\Event::setInstance($dispatcher);
 \App\Providers\EventServiceProvider::register($dispatcher);
 
+$queueManager = new \App\Queue\QueueManager(config('queue.default', 'sync'));
+\App\Facades\Queue::setInstance($queueManager);
+
 $router = new Router();
 
 $router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);
