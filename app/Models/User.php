@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\DTOs\UserDto;
+use App\Traits\HasRole;
 use App\Abstracts\BaseModel;
 use App\Attributes\ObservedBy;
 use App\Observers\UserObserver;
@@ -12,8 +13,10 @@ use App\Exceptions\QueryException;
 #[ObservedBy(UserObserver::class)]
 class User extends BaseModel
 {
+    use HasRole;
+
     protected static string $table    = 'users';
-    protected static array  $fillable = ['first_name', 'last_name', 'email', 'password'];
+    protected static array  $fillable = ['first_name', 'last_name', 'email', 'password', 'role_id'];
     protected static array  $hidden   = ['password'];
 
     /** Найти пользователя по email-адресу.
