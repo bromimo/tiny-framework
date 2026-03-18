@@ -205,3 +205,27 @@ if (!function_exists('dispatch')) {
         }
     }
 }
+
+if (!function_exists('authorize')) {
+    /** Авторизовать действие через Gate.
+     * @param string $ability Имя действия.
+     * @param object|string $model Экземпляр модели или class-string.
+     * @return void
+     * @throws \App\Exceptions\AuthenticationException Если пользователь не аутентифицирован.
+     * @throws \App\Exceptions\AuthorizationException Если действие запрещено.
+     */
+    function authorize(string $ability, object|string $model): void
+    {
+        $user = \App\Facades\Auth::user();
+
+        if ($user === null) {
+            throw new \App\Exceptions\AuthenticationException();
+        }
+
+        $gate = \App\Facades\App::make(\App\Core\Auth\Gate::class);
+
+        if ($gate->denies($user, $ability, $model)) {
+            throw new \App\Exceptions\AuthorizationException('Forbidden.', $ability);
+        }
+    }
+}
