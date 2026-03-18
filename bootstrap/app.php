@@ -10,9 +10,9 @@ use TinyRouter\Facade\Route;
 use TinyRouter\Http\Request;
 use App\Abstracts\BaseRequest;
 use TinyRouter\Routing\Router;
+use App\Exceptions\QueryException;
 use App\Exceptions\ValidationException;
 use App\Exceptions\ModelNotFoundException;
-use App\Exceptions\QueryException;
 
 Env::load(__DIR__ . '/..');
 Cache::init();
