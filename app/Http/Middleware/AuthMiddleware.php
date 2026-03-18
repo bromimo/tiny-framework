@@ -2,34 +2,29 @@
 
 namespace App\Http\Middleware;
 
-use App\Core\Logger;
-use App\Models\Token;
-use App\Facades\ApiResponse;
+use App\Facades\Auth;
 use TinyRouter\Http\Request;
 use TinyRouter\Http\Response;
+use App\Exceptions\AuthenticationException;
 use TinyRouter\Contract\MiddlewareInterface;
 
-/** Middleware аутентификации: проверяет bearer-токен в заголовке Authorization. */
+/** Middleware аутентификации по Bearer-токену.
+ * Делегирует валидацию текущему guard-у через фасад Auth.
+ */
 class AuthMiddleware implements MiddlewareInterface
 {
-    /** Проверить токен и передать запрос дальше или вернуть 401.
-     * @param Request  $request
+    /** Обработать запрос — проверить аутентификацию.
+     * @param Request $request
      * @param callable $next
      * @return Response
+     * @throws AuthenticationException Если токен невалидный или отсутствует.
      */
     public function handle(Request $request, callable $next): Response
     {
-        $token = getBearerToken();
+        $user = Auth::guard('api')->validate($request);
 
-        if ($token === null) {
-            return ApiResponse::unauthorized('No token provided.');
-        }
-
-        $record = Token::findValid($token);
-
-        if ($record === null) {
-            Logger::info('Invalid or expired token attempt: ' . substr($token, 0, 8) . '...');
-            return ApiResponse::unauthorized('Invalid or expired token.');
+        if ($user === null) {
+            throw new AuthenticationException();
         }
 
         return $next($request);

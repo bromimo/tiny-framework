@@ -20,9 +20,13 @@ class UserController
     /** Список пользователей с пагинацией.
      * @param Request $request
      * @return Response
+     * @throws \App\Exceptions\AuthenticationException
+     * @throws \App\Exceptions\AuthorizationException
      */
     public function index(Request $request): Response
     {
+        authorize('viewAny', User::class);
+
         $result = User::paginate($request);
 
         return success(UserResource::collection($result['data']), $result['meta']);
@@ -31,9 +35,13 @@ class UserController
     /** Получить пользователя по ID.
      * @param User $user
      * @return Response
+     * @throws \App\Exceptions\AuthenticationException
+     * @throws \App\Exceptions\AuthorizationException
      */
     public function show(User $user): Response
     {
+        authorize('view', $user);
+
         return success(UserResource::make($user));
     }
 
@@ -43,9 +51,13 @@ class UserController
      * @return Response
      * @throws ValidationException
      * @throws QueryException
+     * @throws \App\Exceptions\AuthenticationException
+     * @throws \App\Exceptions\AuthorizationException
      */
     public function store(CreateUserRequest $req, CreateUserAction $action): Response
     {
+        authorize('create', User::class);
+
         return created(UserResource::make($action->run($req->toDto())));
     }
 
@@ -56,9 +68,13 @@ class UserController
      * @return Response
      * @throws ValidationException
      * @throws QueryException
+     * @throws \App\Exceptions\AuthenticationException
+     * @throws \App\Exceptions\AuthorizationException
      */
     public function update(UpdateUserRequest $req, User $user, UpdateUserAction $action): Response
     {
+        authorize('update', $user);
+
         return success(UserResource::make($action->run($user, $req->toDto())));
     }
 
@@ -66,9 +82,13 @@ class UserController
      * @param User             $user
      * @param DeleteUserAction $action
      * @return Response
+     * @throws \App\Exceptions\AuthenticationException
+     * @throws \App\Exceptions\AuthorizationException
      */
     public function destroy(User $user, DeleteUserAction $action): Response
     {
+        authorize('delete', $user);
+
         $action->run($user);
 
         return success(['message' => 'User deleted successfully.']);
