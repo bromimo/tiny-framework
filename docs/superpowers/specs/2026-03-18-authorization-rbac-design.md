@@ -173,7 +173,7 @@ validate(Request): ?User  — провалидировать запрос и в�
     ],
     'user' => [
         'description' => 'Пользователь',
-        'permissions' => ['users.view'],
+        'permissions' => ['users.view', 'users.update'],
     ],
 ],
 'permissions' => [
