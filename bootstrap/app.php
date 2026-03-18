@@ -28,6 +28,19 @@ $dispatcher = new \App\Core\EventDispatcher();
 $queueManager = new \App\Queue\QueueManager(config('queue.default', 'sync'));
 \App\Facades\Queue::setInstance($queueManager);
 
+// --- Auth ---
+$tokenGuard = new \App\Core\Auth\TokenGuard();
+$authManager = new \App\Core\Auth\AuthManager(
+    config('auth.defaults.guard', 'api'),
+    ['api' => $tokenGuard],
+);
+\App\Facades\Auth::setInstance($authManager);
+
+// --- Gate ---
+$gate = new \App\Core\Auth\Gate();
+$gate->register(\App\Models\User::class, new \App\Policies\UserPolicy());
+$container->instance(\App\Core\Auth\Gate::class, $gate);
+
 $router = new Router();
 
 $router->addMiddlewareAlias('auth:api', \App\Http\Middleware\AuthMiddleware::class);
@@ -41,6 +54,10 @@ $router->addMiddlewareFactory('rate_limit', function (string $params): \App\Http
     }
     [$max, $decay] = $parts;
     return new \App\Http\Middleware\RateLimitMiddleware((int) $max, (int) $decay);
+});
+
+$router->addMiddlewareFactory('can', function (string $params): \App\Http\Middleware\AuthorizationMiddleware {
+    return new \App\Http\Middleware\AuthorizationMiddleware($params);
 });
 
 $router->addTypeResolver(
@@ -110,6 +127,10 @@ try {
     ApiResponse::notFound('Route not found.')->withHeader('X-Request-Id', $requestId)->send();
 } catch (\TinyRouter\Exception\MethodNotAllowedException $e) {
     ApiResponse::error('Method not allowed.', 405)->withHeader('X-Request-Id', $requestId)->send();
+} catch (\App\Exceptions\AuthenticationException $e) {
+    ApiResponse::unauthorized($e->getMessage())->withHeader('X-Request-Id', $requestId)->send();
+} catch (\App\Exceptions\AuthorizationException $e) {
+    ApiResponse::error($e->getMessage(), 403)->withHeader('X-Request-Id', $requestId)->send();
 } catch (\Throwable $e) {
     \App\Core\Logger::error("[{$requestId}] " . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
     ApiResponse::error('Internal server error.', 500)->withHeader('X-Request-Id', $requestId)->send();

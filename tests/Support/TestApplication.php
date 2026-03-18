@@ -2,20 +2,30 @@
 
 namespace Tests\Support;
 
-use App\Abstracts\BaseModel;
-use TinyRouter\Facade\Route;
+use App\Facades\App;
+use App\Models\User;
+use App\Facades\Auth;
+use App\Core\Auth\Gate;
 use TinyRouter\Http\Request;
 use App\Facades\ApiResponse;
+use App\Abstracts\BaseModel;
+use App\Policies\UserPolicy;
+use TinyRouter\Facade\Route;
 use TinyRouter\Http\Response;
+use App\Core\Auth\TokenGuard;
 use App\Abstracts\BaseRequest;
 use TinyRouter\Routing\Router;
+use App\Core\Auth\AuthManager;
 use App\Exceptions\QueryException;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\CorsMiddleware;
 use App\Exceptions\ValidationException;
+use App\Exceptions\AuthorizationException;
 use App\Exceptions\ModelNotFoundException;
+use App\Exceptions\AuthenticationException;
 use TinyRouter\Exception\NotFoundException;
 use App\Http\Middleware\RateLimitMiddleware;
+use App\Http\Middleware\AuthorizationMiddleware;
 use TinyRouter\Exception\MethodNotAllowedException;
 
 /** Тестовое приложение — зеркало bootstrap/app.php без вызова dispatch()->send().
@@ -60,6 +70,26 @@ class TestApplication
             }
         );
 
+        $this->router->addMiddlewareFactory(
+            'can',
+            function (string $params): AuthorizationMiddleware {
+                return new AuthorizationMiddleware($params);
+            }
+        );
+
+        // --- Auth ---
+        $tokenGuard = new TokenGuard();
+        $authManager = new AuthManager(
+            config('auth.defaults.guard', 'api'),
+            ['api' => $tokenGuard],
+        );
+        Auth::setInstance($authManager);
+
+        // --- Gate ---
+        $gate = new Gate();
+        $gate->register(User::class, new UserPolicy());
+        App::instance(Gate::class, $gate);
+
         Route::swap($this->router);
 
         // require (не require_once) — перерегистрирует маршруты на новом роутере
@@ -67,7 +97,7 @@ class TestApplication
     }
 
     /** Выполнить запрос и вернуть объект ответа (без send()).
-     * Заполняет $_SERVER из заголовков Request, чтобы getBearerToken() работал корректно.
+     * Заполняет $_SERVER из заголовков Request для совместимости с контроллерами.
      * @param Request $request
      * @return Response
      */
@@ -90,13 +120,17 @@ class TestApplication
             return ApiResponse::notFound('Route not found.');
         } catch (MethodNotAllowedException $e) {
             return ApiResponse::error('Method not allowed.', 405);
+        } catch (AuthenticationException $e) {
+            return ApiResponse::unauthorized($e->getMessage());
+        } catch (AuthorizationException $e) {
+            return ApiResponse::error($e->getMessage(), 403);
         } catch (\Throwable $e) {
             return ApiResponse::error('Internal server error.', 500);
         }
     }
 
     /** Перенести заголовки и query-параметры из объекта Request в суперглобалы.
-     * Нужно для совместимости с getBearerToken() ($_SERVER) и контроллерами, читающими $_GET.
+     * Нужно для совместимости с контроллерами, читающими $_GET и $_SERVER.
      * @param Request $request
      * @return void
      */
