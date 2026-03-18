@@ -30,7 +30,7 @@ class UserControllerTest extends FeatureTestCase
 
         // Создать пользователя-администратора и получить токен для всех тестов
         $hash = password_hash('admin123', PASSWORD_BCRYPT);
-        qi("INSERT INTO users (first_name, last_name, email, password) VALUES ('Admin', 'User', 'admin@test.com', ?)", [$hash]);
+        qi("INSERT INTO users (first_name, last_name, email, password, role_id) VALUES ('Admin', 'User', 'admin@test.com', ?, 2)", [$hash]);
 
         $loginResponse = $this->client->post('/api/v1/auth/login', [
             'email'    => 'admin@test.com',

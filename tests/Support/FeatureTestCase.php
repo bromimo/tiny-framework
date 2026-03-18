@@ -4,6 +4,7 @@ namespace Tests\Support;
 
 use App\Facades\DB;
 use App\Facades\Env;
+use App\Facades\Auth;
 use App\Facades\Cache;
 use App\Facades\Config;
 use PHPUnit\Framework\TestCase;
@@ -29,11 +30,24 @@ abstract class FeatureTestCase extends TestCase
         parent::setUp();
         $this->client = new TestClient();
         DB::query('START TRANSACTION');
+
+        // Минимальные данные RBAC для всех feature-тестов
+        qi("INSERT IGNORE INTO roles (id, name) VALUES (1, 'user')");
+        qi("INSERT IGNORE INTO roles (id, name) VALUES (2, 'admin')");
+        qi("INSERT IGNORE INTO permissions (id, name) VALUES (1, 'users.view')");
+        qi("INSERT IGNORE INTO permissions (id, name) VALUES (2, 'users.create')");
+        qi("INSERT IGNORE INTO permissions (id, name) VALUES (3, 'users.update')");
+        qi("INSERT IGNORE INTO permissions (id, name) VALUES (4, 'users.delete')");
+        qi("INSERT IGNORE INTO permissions (id, name) VALUES (5, '*')");
+        qi("INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (1, 1)");
+        qi("INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (1, 3)");
+        qi("INSERT IGNORE INTO role_permissions (role_id, permission_id) VALUES (2, 5)");
     }
 
     protected function tearDown(): void
     {
         DB::query('ROLLBACK');
+        Auth::reset();
         parent::tearDown();
     }
 }
